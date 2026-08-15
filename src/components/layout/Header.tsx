@@ -1,5 +1,5 @@
 // External
-import { Loader2, LogOut, Palette } from 'lucide-react'
+import { Loader2, LogOut } from 'lucide-react'
 import type { JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink, useNavigate } from 'react-router'
@@ -73,7 +73,10 @@ export function Header(): JSX.Element {
 
   return (
     <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
-      <div aria-hidden className="h-1 bg-accent" />
+      {/* The stripe carries the theme's SIGNATURE colour, so it must be --primary: on --accent it
+          rendered emerald's gold over a green page, and the toggle right beneath it (bg-primary)
+          disagreed with it in every theme. --accent is now reserved for the small ticks. */}
+      <div aria-hidden className="h-1 bg-primary" />
       {/* min-h + py instead of a fixed h-14: when longer locale strings (ES) force the controls
           onto a second line the header must grow — a fixed height made the rows collide. */}
       <div className="mx-auto flex min-h-14 w-full max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2">
@@ -97,16 +100,23 @@ export function Header(): JSX.Element {
           <BackendSwitcher />
           <LanguageSwitcher />
           <Select value={theme} onValueChange={(value): void => { if (isTheme(value)) setTheme(value) }}>
+            {/* No leading icon of our own here (the generic palette glyph used to sit where the
+                ball is now): Radix portals the SELECTED item's <ItemText> children into the
+                trigger, so putting the ball inside each option renders it in the trigger too —
+                one source, and the trigger can never disagree with the list. The ball is
+                decorative (aria-hidden inside PokeballMark) and contributes no textContent, so
+                the hidden native <option> and typeahead still see just the label; `textValue`
+                states that explicitly rather than relying on the DOM fallback. */}
             <SelectTrigger aria-label={t('theme.label')} title={t(`theme.${THEME_I18N_KEYS[theme]}`)} className="w-40">
-              <span className="flex min-w-0 items-center gap-2">
-                <Palette aria-hidden className="size-4 shrink-0 text-muted-foreground" />
-                <SelectValue />
-              </span>
+              <SelectValue />
             </SelectTrigger>
             <SelectContent align="end">
               {THEMES.map((value) => (
-                <SelectItem key={value} value={value}>
-                  {t(`theme.${THEME_I18N_KEYS[value]}`)}
+                <SelectItem key={value} value={value} textValue={t(`theme.${THEME_I18N_KEYS[value]}`)}>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <PokeballMark variant={THEME_POKEBALL[value]} size={17} />
+                    <span className="truncate">{t(`theme.${THEME_I18N_KEYS[value]}`)}</span>
+                  </span>
                 </SelectItem>
               ))}
             </SelectContent>
