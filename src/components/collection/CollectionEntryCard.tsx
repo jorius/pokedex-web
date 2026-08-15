@@ -7,11 +7,14 @@ import { Link } from 'react-router'
 // Lib
 import { cn } from '../../lib/Cn'
 import { formatPokedexNumber, humanizeSlug } from '../../lib/Format'
+import { resolveSpriteUrl } from '../../lib/Sprite'
 
 // Store
+import { useAppSelector } from '../../store/Hooks'
 import type { LocalPokemon } from '../../store/Types'
 
 // Components
+import { ShinyOverlay } from '../pokemon/ShinyOverlay'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
@@ -38,6 +41,11 @@ function formatCapturedDate(isoTimestamp: string, locale: string): string {
  * keep their own keyboard stop, and never trigger navigation. */
 export function CollectionEntryCard({ record, onEdit, onRelease, onDelete }: CollectionEntryCardProps): JSX.Element {
   const { t, i18n } = useTranslation()
+  const shinyMode = useAppSelector((state) => state.ui.shinyMode)
+  // Entries synced before the backend stored shiny art have a null here, so this is the surface
+  // where the fallback shows up most: the helper hands back the normal sprite and the 'fallback'
+  // state, and the overlay explains it rather than the card silently looking un-shiny.
+  const sprite = resolveSpriteUrl(record, shinyMode)
   const displayName = humanizeSlug(record.name)
   // The delete and release buttons' accessible names must match what their confirm dialogs will
   // say — nickname when one exists, species name otherwise.
@@ -61,11 +69,12 @@ export function CollectionEntryCard({ record, onEdit, onRelease, onDelete }: Col
           <span aria-hidden className="absolute left-1 top-1 font-display text-[10px] text-muted-foreground">
             {formatPokedexNumber(record.pokeApiId)}
           </span>
-          {record.spriteUrl !== null ? (
-            <img src={record.spriteUrl} alt={record.name} loading="lazy" className="size-full object-contain [image-rendering:pixelated]" />
+          {sprite.url !== null ? (
+            <img src={sprite.url} alt={record.name} loading="lazy" className="size-full object-contain [image-rendering:pixelated]" />
           ) : (
             <span aria-hidden className="font-display text-3xl text-muted-foreground/50">?</span>
           )}
+          <ShinyOverlay state={sprite.shiny} size="sm" />
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">

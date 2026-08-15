@@ -19,13 +19,14 @@ import { useBrowsePokemonsQuery } from '../store/Api'
 import type { ApiErrorShape } from '../store/Api'
 import { useAppDispatch, useAppSelector } from '../store/Hooks'
 import type { PokemonListItem } from '../store/Types'
-import { setBrowseMode, setPageSize } from '../store/UiSlice'
+import { setBrowseMode, setPageSize, setShinyMode } from '../store/UiSlice'
 import type { BrowseMode, PageSize } from '../store/UiSlice'
 
 // Components
 import { BrowseModeToggle } from '../components/pokemon/BrowseModeToggle'
 import { PageSizeSelect, PaginationControls } from '../components/pokemon/PaginationControls'
 import { PokemonCard } from '../components/pokemon/PokemonCard'
+import { ShinyToggle } from '../components/pokemon/ShinyToggle'
 import { PokemonSearch } from '../components/search/PokemonSearch'
 import { Button } from '../components/ui/Button'
 import { Card, CardContent } from '../components/ui/Card'
@@ -73,6 +74,7 @@ export function BrowsePage(): JSX.Element {
   const [searchParams, setSearchParams] = useSearchParams()
   const pageSize = useAppSelector((state) => state.ui.pageSize)
   const browseMode = useAppSelector((state) => state.ui.browseMode)
+  const shinyMode = useAppSelector((state) => state.ui.shinyMode)
   const baseUrl = useAppSelector((state) => state.apiTarget.baseUrl)
   const isInfinite = browseMode === 'infinite'
 
@@ -159,6 +161,13 @@ export function BrowsePage(): JSX.Element {
   function handlePageSizeChange(nextPageSize: PageSize): void {
     dispatch(setPageSize(nextPageSize))
     setSearchParams({})
+  }
+
+  // Nothing about the grid is re-fetched or reset: every payload already carries both sprites, so
+  // flipping shiny only changes which URL each card renders. The scroll position, the accumulated
+  // infinite pages and the current page all survive it.
+  function handleShinyModeChange(nextShinyMode: boolean): void {
+    dispatch(setShinyMode(nextShinyMode))
   }
 
   // Either direction lands on a clean page 1: infinite starts a fresh accumulation, pagination
@@ -269,6 +278,10 @@ export function BrowsePage(): JSX.Element {
         <h1 className="font-display text-3xl font-bold tracking-wide">{t('browse.title')}</h1>
         <div className="flex flex-wrap items-center gap-3">
           <PokemonSearch />
+          {/* Shiny sits next to the browse mode rather than in the header menu: it changes what the
+              grid right below LOOKS like, so it belongs with the other controls over that grid —
+              even though the preference itself follows the user onto every other surface. */}
+          <ShinyToggle shinyMode={shinyMode} onShinyModeChange={handleShinyModeChange} />
           <BrowseModeToggle mode={browseMode} onModeChange={handleBrowseModeChange} />
           {isInfinite && <PageSizeSelect pageSize={pageSize} onPageSizeChange={handlePageSizeChange} />}
         </div>

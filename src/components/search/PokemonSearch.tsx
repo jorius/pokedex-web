@@ -13,12 +13,15 @@ import { useToast } from '../../hooks/UseToast'
 import { resolveApiErrorMessage } from '../../lib/ApiErrorMessage'
 import { cn } from '../../lib/Cn'
 import { formatPokedexNumber, humanizeSlug } from '../../lib/Format'
+import { resolveSpriteUrl } from '../../lib/Sprite'
 
 // Store
 import { useGetPokemonByIdQuery, useGetPokemonByNameQuery } from '../../store/Api'
 import type { ApiErrorShape } from '../../store/Api'
+import { useAppSelector } from '../../store/Hooks'
 
 // Components
+import { ShinyOverlay } from '../pokemon/ShinyOverlay'
 import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
 import { Input } from '../ui/Input'
@@ -41,6 +44,7 @@ export function PokemonSearch(): JSX.Element {
   const navigate = useNavigate()
   const { showToast } = useToast()
   const inputRef = useRef<HTMLInputElement>(null)
+  const shinyMode = useAppSelector((state) => state.ui.shinyMode)
   const [rawQuery, setRawQuery] = useState('')
 
   const query = rawQuery.trim().toLowerCase()
@@ -105,6 +109,8 @@ export function PokemonSearch(): JSX.Element {
     }
 
     if (match) {
+      const sprite = resolveSpriteUrl(match, shinyMode)
+
       return (
         <Link
           to={`/pokemon/${match.pokeApiId}`}
@@ -113,12 +119,13 @@ export function PokemonSearch(): JSX.Element {
             'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           )}
         >
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-md bg-muted p-1">
-            {match.spriteUrl !== null ? (
-              <img src={match.spriteUrl} alt="" className="size-full object-contain [image-rendering:pixelated]" />
+          <span className="relative flex size-14 shrink-0 items-center justify-center rounded-md bg-muted p-1">
+            {sprite.url !== null ? (
+              <img src={sprite.url} alt="" className="size-full object-contain [image-rendering:pixelated]" />
             ) : (
               <span aria-hidden className="font-display text-2xl text-muted-foreground/50">?</span>
             )}
+            <ShinyOverlay state={sprite.shiny} size="sm" />
           </span>
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="flex items-baseline gap-2">

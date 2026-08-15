@@ -4,7 +4,8 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 
 // Theme lives in ThemeProvider and language lives in i18next — see their own persistence.
 // uiSlice carries the browse-surface preferences (page size, browse mode) per the plan's binding
-// store design, plus ONE piece of cross-surface presentation state: the spin lock below.
+// store design, the app-wide shiny view preference, plus ONE piece of cross-surface presentation
+// state: the spin lock below.
 export const PAGE_SIZES = [10, 20, 50] as const
 
 export type PageSize = (typeof PAGE_SIZES)[number]
@@ -17,9 +18,13 @@ const PAGE_SIZE_STORAGE_KEY = 'pokedex.pageSize'
 
 const BROWSE_MODE_STORAGE_KEY = 'pokedex.browseMode'
 
+const SHINY_MODE_STORAGE_KEY = 'pokedex.shinyMode'
+
 const DEFAULT_PAGE_SIZE: PageSize = 20
 
 const DEFAULT_BROWSE_MODE: BrowseMode = 'pagination'
+
+const DEFAULT_SHINY_MODE = false
 
 export function isPageSize(value: unknown): value is PageSize {
   return typeof value === 'number' && (PAGE_SIZES as readonly number[]).includes(value)
@@ -52,9 +57,31 @@ function readInitialBrowseMode(): BrowseMode {
   return DEFAULT_BROWSE_MODE
 }
 
+function readInitialShinyMode(): boolean {
+  try {
+    const stored = localStorage.getItem(SHINY_MODE_STORAGE_KEY)
+    if (stored !== null) return stored === 'true'
+  } catch {
+    // Storage unavailable — fall through to the default
+  }
+
+  return DEFAULT_SHINY_MODE
+}
+
 export interface UiState {
   pageSize: PageSize
   browseMode: BrowseMode
+  /**
+   * Show every pokemon in its shiny form. A GLOBAL view preference, not a browse-surface one: the
+   * switch lives in the browse toolbar because that is the home page, but it applies to the detail
+   * artwork, the evolution mini-cards, the collection entries, the search panel and the sprite the
+   * ball absorbs alike.
+   *
+   * Persisted, because a trainer who prefers shinies prefers them tomorrow too. It never changes
+   * what is REQUESTED — every payload already carries both sprites — so nothing about it touches
+   * the API cache; it only picks which of the two URLs is rendered.
+   */
+  shinyMode: boolean
   /**
    * True from the moment a slots spin is paid for until the third reel has landed and the result
    * is on screen.
@@ -79,6 +106,7 @@ export interface UiState {
 const initialState: UiState = {
   pageSize: readInitialPageSize(),
   browseMode: readInitialBrowseMode(),
+  shinyMode: readInitialShinyMode(),
   isSpinLocked: false,
 }
 
@@ -104,6 +132,15 @@ const uiSlice = createSlice({
       }
     },
 
+    setShinyMode(state, action: PayloadAction<boolean>): void {
+      state.shinyMode = action.payload
+      try {
+        localStorage.setItem(SHINY_MODE_STORAGE_KEY, String(action.payload))
+      } catch {
+        // Storage unavailable — shiny mode still applies for this session
+      }
+    },
+
     /** Dispatch on the SPIN click, before the mutation fires — the lock must already be on when
      *  the invalidated wallet query comes back. */
     spinLockEngaged(state): void {
@@ -118,5 +155,5 @@ const uiSlice = createSlice({
   },
 })
 
-export const { setPageSize, setBrowseMode, spinLockEngaged, spinLockReleased } = uiSlice.actions
+export const { setPageSize, setBrowseMode, setShinyMode, spinLockEngaged, spinLockReleased } = uiSlice.actions
 export const uiReducer = uiSlice.reducer

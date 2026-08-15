@@ -5,11 +5,14 @@ import { Link } from 'react-router'
 
 // Lib
 import { formatPokedexNumber, formatTenths, humanizeSlug } from '../../lib/Format'
+import { resolveSpriteUrl } from '../../lib/Sprite'
 
 // Store
+import { useAppSelector } from '../../store/Hooks'
 import type { PokemonListItem } from '../../store/Types'
 
 // Components
+import { ShinyOverlay } from './ShinyOverlay'
 import { Badge } from '../ui/Badge'
 import { Card } from '../ui/Card'
 
@@ -18,9 +21,13 @@ interface PokemonCardProps {
 }
 
 /** Whole-card link to the detail page. Sprite sits in a muted "specimen well" stamped with the
- * pokedex number — the entry-card look the game menus use — and lifts slightly on hover. */
+ * pokedex number — the entry-card look the game menus use — and lifts slightly on hover. Which of
+ * the two artworks the well holds is the shiny preference's call; the well itself is decorated to
+ * match (ShinyOverlay). */
 export function PokemonCard({ pokemon }: PokemonCardProps): JSX.Element {
   const { t } = useTranslation()
+  const shinyMode = useAppSelector((state) => state.ui.shinyMode)
+  const sprite = resolveSpriteUrl(pokemon, shinyMode)
 
   return (
     <Link
@@ -34,9 +41,9 @@ export function PokemonCard({ pokemon }: PokemonCardProps): JSX.Element {
           <span aria-hidden className="absolute left-2 top-1.5 font-display text-xs text-muted-foreground sm:left-3 sm:top-2 sm:text-sm">
             {formatPokedexNumber(pokemon.pokeApiId)}
           </span>
-          {pokemon.spriteUrl !== null ? (
+          {sprite.url !== null ? (
             <img
-              src={pokemon.spriteUrl}
+              src={sprite.url}
               alt={pokemon.name}
               loading="lazy"
               className="size-full object-contain [image-rendering:pixelated] transition-transform duration-300 group-hover:scale-110"
@@ -44,6 +51,7 @@ export function PokemonCard({ pokemon }: PokemonCardProps): JSX.Element {
           ) : (
             <span aria-hidden className="font-display text-6xl text-muted-foreground/50">?</span>
           )}
+          <ShinyOverlay state={sprite.shiny} />
         </div>
         <div className="flex flex-1 flex-col gap-1.5 p-3 sm:gap-2 sm:p-4">
           <h2 className="font-display text-base font-bold capitalize leading-tight sm:text-lg">{humanizeSlug(pokemon.name)}</h2>

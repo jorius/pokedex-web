@@ -108,6 +108,11 @@
     "loadingMore": "Cargando más…",
     "endReached": "Ya viste todos los Pokémon."
   },
+  "shiny": {
+    "label": "Shiny",
+    "description": "Mostrar todos los Pokémon en su forma shiny",
+    "noArtwork": "Este no tiene arte shiny — se muestra su forma normal"
+  },
   "detail": {
     "stats": "Estadísticas",
     "types": "Tipos",

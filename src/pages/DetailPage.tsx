@@ -15,6 +15,7 @@ import { useToast } from '../hooks/UseToast'
 import { resolveApiErrorMessage } from '../lib/ApiErrorMessage'
 import { cn } from '../lib/Cn'
 import { formatPokedexNumber, formatTenths, humanizeSlug, toDisplayName } from '../lib/Format'
+import { resolveSpriteUrl } from '../lib/Sprite'
 
 // Store
 import { useGetCatalogueQuery, useGetLocalByPokeApiIdQuery, useGetWalletQuery, useGetPokemonByIdQuery, useGetPokemonByNameQuery, useSyncByIdMutation } from '../store/Api'
@@ -32,6 +33,7 @@ import { captureSpriteClassName } from '../components/capture/CaptureSprite'
 import { CapturedBadge } from '../components/capture/CapturedBadge'
 import { formatCredits } from '../components/economy/EconomyFormat'
 import { EvolutionChain } from '../components/pokemon/EvolutionChain'
+import { ShinyMark, ShinyOverlay } from '../components/pokemon/ShinyOverlay'
 import { StatBars } from '../components/pokemon/StatBars'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
@@ -154,6 +156,7 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
   const location = useLocation()
   const { theme } = useTheme()
   const isAuthenticated = useAppSelector((state) => state.auth.accessToken !== null)
+  const shinyMode = useAppSelector((state) => state.ui.shinyMode)
   const { showToast } = useToast()
   const [syncById, { isLoading: isSyncing }] = useSyncByIdMutation()
   // The captured check answers 404 when this pokemon is not in the caller's collection — that is
@@ -248,6 +251,13 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
   const capturedAt = capture.isCatching ? undefined : capturedEntry?.capturedAt
   const isCaptured = capturedAt !== undefined
   const spriteClassName = captureSpriteClassName(capture.phase)
+  // One resolve for the card: the same URL is the artwork on screen AND the sprite the ball
+  // absorbs (the capture sequence animates this very img), so the throw can never swallow a
+  // different artwork than the one being looked at.
+  const sprite = resolveSpriteUrl(detail, shinyMode)
+  // The shine is dropped for the duration of a throw. The sprite is flashing into the ball (and
+  // then simply gone) and a sweep over an empty well would be decorating nothing.
+  const shinyState = capture.phase === 'idle' ? sprite.shiny : 'off'
 
   // For as long as a throw is ON SCREEN (mid-flight, or holding its result) the belt shows the ball
   // that was thrown, not the one that is next. The wallet answers mid-wobble, and spending the last
@@ -351,17 +361,20 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
     <div className={DETAIL_GRID_CLASS}>
       <Card className={ARTWORK_CELL_CLASS}>
         <div className={ARTWORK_WELL_CLASS}>
-          {detail.spriteUrl !== null ? (
+          {sprite.url !== null ? (
             // The opacity transition is what brings the sprite back after a capture: the phase
             // classes only take it away, and a hard pop-in at the end of the throw reads as a bug.
             <img
-              src={detail.spriteUrl}
+              src={sprite.url}
               alt={detail.name}
               className={cn('size-full object-contain [image-rendering:pixelated] drop-shadow-lg transition-opacity duration-300', spriteClassName)}
             />
           ) : (
             <span aria-hidden className={cn('font-display text-8xl text-muted-foreground/50', spriteClassName)}>?</span>
           )}
+          {/* Shine only: the well's top corners belong to the name plate, so the mark hangs in the
+              plate itself (below) where it reads as part of the dex label. */}
+          <ShinyOverlay state={shinyState} mark={false} />
           <CaptureAnimation phase={capture.phase} variant={thrownBall} />
         </div>
 
@@ -373,6 +386,9 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
               <h1 className="min-w-0 flex-1 truncate font-display text-2xl font-bold capitalize leading-tight tracking-wide sm:text-3xl">
                 {humanizeSlug(detail.name)}
               </h1>
+              {/* Between the name and the number, so "this entry is the shiny one" is part of the
+                  label rather than a sticker floating over the artwork. */}
+              <ShinyMark state={sprite.shiny} className="size-5 shrink-0 self-center" />
               <span aria-hidden className="shrink-0 font-display text-lg tabular-nums text-muted-foreground sm:text-xl">
                 {formatPokedexNumber(detail.pokeApiId)}
               </span>
@@ -448,6 +464,7 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
               currentName={detail.name}
               currentPokeApiId={detail.pokeApiId}
               currentSpriteUrl={detail.spriteUrl}
+              currentShinySpriteUrl={detail.shinySpriteUrl}
             />
           </Section>
         )}

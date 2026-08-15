@@ -7,17 +7,21 @@ import { Link } from 'react-router'
 // Lib
 import { cn } from '../../lib/Cn'
 import { formatPokedexNumber, humanizeSlug } from '../../lib/Format'
+import { resolveSpriteUrl } from '../../lib/Sprite'
 
 // Store
 import { useGetPokemonByNameQuery } from '../../store/Api'
+import { useAppSelector } from '../../store/Hooks'
 
 // Components
+import { ShinyOverlay } from './ShinyOverlay'
 import { Skeleton } from '../ui/Skeleton'
 
-/** Sprite + number for one stage. Null while the stage's own detail request is still in flight. */
+/** Sprites + number for one stage. Null while the stage's own detail request is still in flight. */
 interface StageIdentity {
   pokeApiId: number
   spriteUrl: string | null
+  shinySpriteUrl: string | null
 }
 
 const STAGE_CLASS = [
@@ -41,20 +45,26 @@ interface StageBodyProps {
 }
 
 function StageBody({ name, identity, isLoading, isCurrent }: StageBodyProps): JSX.Element {
+  const shinyMode = useAppSelector((state) => state.ui.shinyMode)
+  const sprite = identity === null ? null : resolveSpriteUrl(identity, shinyMode)
+
   // A stage whose own request is still running shows a pulse; one that resolved without a sprite
   // (or failed outright) falls back to the same "?" glyph the browse and detail wells use.
   function renderWell(): JSX.Element {
-    if (identity === null) {
+    if (sprite === null) {
       if (isLoading) return <Skeleton className="size-full rounded-sm bg-foreground/10" />
       return <span aria-hidden className="font-display text-2xl text-muted-foreground/60">?</span>
     }
-    if (identity.spriteUrl === null) return <span aria-hidden className="font-display text-2xl text-muted-foreground/60">?</span>
-    return <img src={identity.spriteUrl} alt="" loading="lazy" className="size-full object-contain [image-rendering:pixelated]" />
+    if (sprite.url === null) return <span aria-hidden className="font-display text-2xl text-muted-foreground/60">?</span>
+    return <img src={sprite.url} alt="" loading="lazy" className="size-full object-contain [image-rendering:pixelated]" />
   }
 
   return (
     <>
-      <div className="flex aspect-square w-full items-center justify-center rounded-sm bg-muted p-1">{renderWell()}</div>
+      <div className="relative flex aspect-square w-full items-center justify-center rounded-sm bg-muted p-1">
+        {renderWell()}
+        {sprite !== null && <ShinyOverlay state={sprite.shiny} size="sm" />}
+      </div>
       <span className={cn('font-display text-xs font-bold capitalize leading-tight', isCurrent ? 'text-foreground' : 'text-muted-foreground')}>
         {humanizeSlug(name)}
       </span>
@@ -81,7 +91,7 @@ interface EvolutionStageProps {
 function EvolutionStage({ name, known }: EvolutionStageProps): JSX.Element {
   const isCurrent = known !== null
   const { data, isLoading } = useGetPokemonByNameQuery(name, { skip: isCurrent })
-  const identity = known ?? (data !== undefined ? { pokeApiId: data.pokeApiId, spriteUrl: data.spriteUrl } : null)
+  const identity = known ?? (data !== undefined ? { pokeApiId: data.pokeApiId, spriteUrl: data.spriteUrl, shinySpriteUrl: data.shinySpriteUrl } : null)
 
   if (isCurrent) {
     return (
@@ -103,12 +113,13 @@ interface EvolutionChainProps {
   currentName: string
   currentPokeApiId: number
   currentSpriteUrl: string | null
+  currentShinySpriteUrl: string | null
 }
 
 /** The evolution line as a row of mini-cards (sprite, name, number) joined by chevrons. The
  * current stage is marked and inert; the rest link to their own detail page. Single-entry
  * chains render nothing. */
-export function EvolutionChain({ chain, currentName, currentPokeApiId, currentSpriteUrl }: EvolutionChainProps): JSX.Element | null {
+export function EvolutionChain({ chain, currentName, currentPokeApiId, currentSpriteUrl, currentShinySpriteUrl }: EvolutionChainProps): JSX.Element | null {
   if (chain.length < 2) return null
 
   return (
@@ -116,7 +127,10 @@ export function EvolutionChain({ chain, currentName, currentPokeApiId, currentSp
       {chain.map((name, index) => (
         <Fragment key={name}>
           {index > 0 && <ChevronRight aria-hidden className="size-5 shrink-0 text-muted-foreground/70" />}
-          <EvolutionStage name={name} known={name === currentName ? { pokeApiId: currentPokeApiId, spriteUrl: currentSpriteUrl } : null} />
+          <EvolutionStage
+            name={name}
+            known={name === currentName ? { pokeApiId: currentPokeApiId, spriteUrl: currentSpriteUrl, shinySpriteUrl: currentShinySpriteUrl } : null}
+          />
         </Fragment>
       ))}
     </div>

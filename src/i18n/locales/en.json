@@ -108,6 +108,11 @@
     "loadingMore": "Loading more…",
     "endReached": "That is every Pokémon."
   },
+  "shiny": {
+    "label": "Shiny",
+    "description": "Show every Pokémon in its shiny form",
+    "noArtwork": "No shiny artwork for this one — showing its normal form"
+  },
   "detail": {
     "stats": "Stats",
     "types": "Types",

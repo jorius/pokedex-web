@@ -30,6 +30,12 @@ export interface PokemonListItem {
   pokeApiId: number
   name: string
   spriteUrl: string | null
+  /**
+   * Official shiny artwork. NULL is legitimate and common: a form PokeAPI has no shiny art for,
+   * and — on collection entries — a row synced before the backend started storing it. Never render
+   * it directly; go through `resolveSpriteUrl` (src/lib/Sprite.ts), which owns the fallback rule.
+   */
+  shinySpriteUrl: string | null
   category: string | null
   weight: number
   abilities: PokemonAbility[]
@@ -53,6 +59,8 @@ export interface LocalPokemon {
   pokeApiId: number
   name: string
   spriteUrl: string | null
+  /** See PokemonListItem.shinySpriteUrl — null on every entry synced before the backend stored it. */
+  shinySpriteUrl: string | null
   category: string | null
   weight: number | null
   description: string | null
