@@ -87,6 +87,21 @@
     "weightValue": "{{value}} kg",
     "hiddenAbility": "Habilidad oculta"
   },
+  "search": {
+    "label": "Buscar",
+    "placeholder": "Busca por nombre o número…",
+    "notFound": "Ningún Pokémon coincide con \"{{query}}\".",
+    "hint": "Presiona Enter para abrir",
+    "clear": "Limpiar búsqueda",
+    "searching": "Buscando…"
+  },
+  "browseMode": {
+    "label": "Vista",
+    "pagination": "Páginas",
+    "infinite": "Scroll infinito",
+    "loadingMore": "Cargando más…",
+    "endReached": "Ya viste todos los Pokémon."
+  },
   "detail": {
     "stats": "Estadísticas",
     "types": "Tipos",
@@ -99,7 +114,15 @@
     "sync": "Sincronizar a la colección",
     "syncSuccess": "Se agregó a tu colección.",
     "loginToSync": "Inicia sesión para sincronizar este Pokémon con tu colección.",
-    "notFound": "No se encontró el Pokémon."
+    "notFound": "No se encontró el Pokémon.",
+    "captured": "Capturado",
+    "capturedOn": "Capturado el {{date}}",
+    "catch": "Capturar",
+    "catching": "Capturando…",
+    "catchSuccess": "¡{{name}} fue capturado!",
+    "catchFailed": "El Pokémon se escapó. Inténtalo de nuevo.",
+    "alreadyCaptured": "En tu colección",
+    "resync": "Actualizar datos"
   },
   "collection": {
     "title": "Mi Colección",
