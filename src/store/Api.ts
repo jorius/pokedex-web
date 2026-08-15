@@ -15,6 +15,13 @@ import type {
   PokemonDetail,
   PokemonListItem,
   UpdatePokemonPayload,
+  BallCatalogueEntry,
+  Wallet,
+  BuyBallsRequest,
+  SpinResult,
+  SpinHistoryEntry,
+  CatchResult,
+  CatchRequest,
 } from './Types'
 
 export interface ApiErrorShape {
@@ -126,7 +133,7 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Local'],
+  tagTypes: ['Local', 'Wallet', 'Spins'],
   endpoints: (builder) => ({
     browsePokemons: builder.query<PagedResult<PokemonListItem>, PagedRequest>({
       query: ({ page, pageSize }) => `/api/pokemons?page=${page}&pageSize=${pageSize}`,
@@ -171,11 +178,53 @@ export const api = createApi({
       providesTags: ['Local'],
     }),
 
-    syncById: builder.mutation<LocalPokemon, number>({
-      query: (id) => ({ url: `/api/pokemons/${id}/sync`, method: 'POST' }),
-      transformResponse: (response: ApiEnvelope<LocalPokemon>): LocalPokemon => response.data as LocalPokemon,
+    /**
+     * A throw costs one ball and the outcome is rolled server-side: `caught: false` is a
+     * successful request (HTTP 200) in which the pokemon escaped, so callers must read
+     * `caught` rather than treating any 2xx as a capture. 409 means the bag is empty.
+     */
+    syncById: builder.mutation<CatchResult, CatchRequest>({
+      query: ({ id, ballType }) => ({ url: `/api/pokemons/${id}/sync`, method: 'POST', body: { ballType } }),
+      transformResponse: (response: ApiEnvelope<CatchResult>): CatchResult => response.data as CatchResult,
       transformErrorResponse: toApiError,
-      invalidatesTags: ['Local'],
+      invalidatesTags: ['Local', 'Wallet'],
+    }),
+
+    getCatalogue: builder.query<BallCatalogueEntry[], void>({
+      query: () => '/api/economy/catalogue',
+      transformResponse: (response: ApiEnvelope<BallCatalogueEntry[]>): BallCatalogueEntry[] => response.data ?? [],
+      transformErrorResponse: toApiError,
+    }),
+
+    getWallet: builder.query<Wallet, void>({
+      query: () => '/api/economy/wallet',
+      transformResponse: (response: ApiEnvelope<Wallet>): Wallet => response.data as Wallet,
+      transformErrorResponse: toApiError,
+      providesTags: ['Wallet'],
+    }),
+
+    buyBalls: builder.mutation<Wallet, BuyBallsRequest>({
+      query: (body) => ({ url: '/api/economy/shop/buy', method: 'POST', body }),
+      transformResponse: (response: ApiEnvelope<Wallet>): Wallet => response.data as Wallet,
+      transformErrorResponse: toApiError,
+      invalidatesTags: ['Wallet'],
+    }),
+
+    spinSlots: builder.mutation<SpinResult, void>({
+      query: () => ({ url: '/api/economy/slots/spin', method: 'POST' }),
+      transformResponse: (response: ApiEnvelope<SpinResult>): SpinResult => response.data as SpinResult,
+      transformErrorResponse: toApiError,
+      invalidatesTags: ['Wallet', 'Spins'],
+    }),
+
+    getSpinHistory: builder.query<PagedResult<SpinHistoryEntry>, PagedRequest>({
+      query: ({ page, pageSize }) => `/api/economy/slots/history?page=${page}&pageSize=${pageSize}`,
+      transformResponse: (response: ApiEnvelope<SpinHistoryEntry[]>): PagedResult<SpinHistoryEntry> => ({
+        items: response.data ?? [],
+        meta: response.meta as PagedMeta,
+      }),
+      transformErrorResponse: toApiError,
+      providesTags: ['Spins'],
     }),
 
     updateLocal: builder.mutation<LocalPokemon, UpdateLocalRequest>({

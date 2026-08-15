@@ -137,7 +137,8 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
   }
 
   const capture = useCaptureSequence({
-    onCapture: () => syncById(detail.pokeApiId).unwrap(),
+    // TODO(C6): the ball comes from the picker once it lands; the default keeps parity with the API.
+    onCapture: () => syncById({ id: detail.pokeApiId, ballType: 'poke' }).unwrap(),
     onSuccess: () => { showToast({ message: t('detail.catchSuccess', { name: toDisplayName(detail.name) }), variant: 'success' }) },
     onFailure: (error: unknown) => { showToast({ message: resolveCatchFailureMessage(error), variant: 'error' }) },
   })
@@ -150,7 +151,7 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
 
   // Re-syncing an entry you already own refreshes its base data — no throw, just the sync toast.
   function handleResync(): void {
-    void syncById(detail.pokeApiId)
+    void syncById({ id: detail.pokeApiId, ballType: 'poke' })
       .unwrap()
       .then(() => { showToast({ message: t('detail.syncSuccess'), variant: 'success' }) })
       .catch((error: unknown) => { showToast({ message: resolveApiErrorMessage(error as ApiErrorShape, t), variant: 'error' }) })

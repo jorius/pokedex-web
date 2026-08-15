@@ -89,3 +89,61 @@ export interface AuthCredentials {
   email: string
   password: string
 }
+
+/** Ball identifiers are a closed set defined by the backend catalogue. */
+export type BallType = 'poke' | 'great' | 'ultra' | 'master'
+
+export interface BallCatalogueEntry {
+  type: BallType
+  name: string
+  price: number
+  catchRate: number
+}
+
+export interface WalletBall {
+  type: BallType
+  quantity: number
+}
+
+/** `balls` always carries all four types in catalogue order, zero-quantity included. */
+export interface Wallet {
+  credits: number
+  balls: WalletBall[]
+}
+
+export interface BuyBallsRequest {
+  ballType: BallType
+  quantity: number
+}
+
+export type SpinOutcome = 'jackpot' | 'triple' | 'pair' | 'none'
+
+export interface SpinResult {
+  reels: number[]
+  outcome: SpinOutcome
+  payout: number
+  wallet: Wallet
+}
+
+export interface SpinHistoryEntry {
+  id: string
+  reels: number[]
+  cost: number
+  payout: number
+  outcome: SpinOutcome
+  createdAt: string
+}
+
+export interface CatchRequest {
+  id: number
+  ballType: BallType
+}
+
+/** `caught: false` is a normal 200 — the ball was spent and the pokemon escaped. */
+export interface CatchResult {
+  caught: boolean
+  ballType: BallType
+  remainingBalls: number
+  chance: number
+  entry: LocalPokemon | null
+}
