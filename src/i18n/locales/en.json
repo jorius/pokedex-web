@@ -1,0 +1,141 @@
+{
+  "common": {
+    "appName": "Pokedex",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "confirm": "Confirm",
+    "error": {
+      "generic": "Something went wrong. Please try again.",
+      "network": "Unable to reach the server. Check your connection and try again."
+    }
+  },
+  "nav": {
+    "browse": "Browse",
+    "collection": "Collection",
+    "login": "Log in",
+    "register": "Register",
+    "logout": "Log out"
+  },
+  "theme": {
+    "label": "Theme",
+    "emerald": "Emerald",
+    "firered": "FireRed",
+    "bwLight": "B&W Light",
+    "bwDark": "B&W Dark"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "es": "Español"
+  },
+  "backend": {
+    "label": "Backend",
+    "dotnet": ".NET",
+    "expressJs": "Express (JS)",
+    "expressTs": "Express (TS)",
+    "switched": "Switched to {{name}}.",
+    "unreachable": "{{name}} is unreachable."
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "loginTitle": "Log in",
+    "registerTitle": "Create an account",
+    "loginCta": "Log in",
+    "registerCta": "Create account",
+    "haveAccount": "Already have an account?",
+    "noAccount": "Don't have an account?",
+    "loggedInAs": "Logged in as {{email}}",
+    "localValidation": {
+      "emailRequired": "Enter your email address.",
+      "passwordMin": "Password must be at least {{count}} characters."
+    }
+  },
+  "browse": {
+    "title": "Browse Pokémon",
+    "pageSize": "Per page",
+    "page": "Page",
+    "of": "of",
+    "next": "Next",
+    "previous": "Previous",
+    "empty": "No Pokémon found.",
+    "abilities": "Abilities",
+    "category": "Category",
+    "weight": "Weight",
+    "hiddenAbility": "Hidden ability"
+  },
+  "detail": {
+    "stats": "Stats",
+    "types": "Types",
+    "abilities": "Abilities",
+    "description": "Description",
+    "evolutionChain": "Evolution chain",
+    "height": "Height",
+    "weight": "Weight",
+    "sync": "Sync to collection",
+    "syncSuccess": "Added to your collection.",
+    "loginToSync": "Log in to sync this Pokémon to your collection.",
+    "notFound": "Pokémon not found."
+  },
+  "collection": {
+    "title": "My Collection",
+    "empty": "Your collection is empty.",
+    "emptyCta": "Browse Pokémon and sync your favorites.",
+    "localizedName": "Nickname",
+    "region": "Region",
+    "classificationTag": "Tag",
+    "description": "Notes",
+    "editTitle": "Edit entry",
+    "deleteConfirmTitle": "Delete this entry?",
+    "deleteConfirmBody": "This will remove it from your collection. This can't be undone.",
+    "updated": "Entry updated.",
+    "deleted": "Entry deleted.",
+    "fieldMax": "Maximum {{count}} characters."
+  },
+  "stats": {
+    "hp": "HP",
+    "attack": "Attack",
+    "defense": "Defense",
+    "special-attack": "Special Attack",
+    "special-defense": "Special Defense",
+    "speed": "Speed"
+  },
+  "showcase": {
+    "title": "Theme showcase",
+    "subtitle": "Every surface below is token-driven — switch themes from the header to verify all four palettes.",
+    "buttonsTitle": "Buttons",
+    "buttonsDescription": "All variants and sizes",
+    "variantDefault": "Default",
+    "variantSecondary": "Secondary",
+    "variantOutline": "Outline",
+    "variantGhost": "Ghost",
+    "variantDestructive": "Destructive",
+    "sizeSmall": "Small",
+    "sizeDefault": "Default",
+    "sizeLarge": "Large",
+    "iconButtonLabel": "Icon button",
+    "openDialog": "Open dialog",
+    "dialogTitle": "Token-driven dialog",
+    "dialogDescription": "Cards, overlays and focus rings all follow the active theme.",
+    "badgesTitle": "Badges and form controls",
+    "badgesDescription": "Badge variants, input and label",
+    "searchLabel": "Search",
+    "searchPlaceholder": "Search for a pokemon...",
+    "loadingTitle": "Loading state",
+    "loadingDescription": "Skeleton placeholders",
+    "paletteTitle": "Palette tokens",
+    "paletteDescription": "Raw swatches of the active theme",
+    "swatchPrimary": "Primary",
+    "swatchSecondary": "Secondary",
+    "swatchAccent": "Accent",
+    "swatchMuted": "Muted",
+    "swatchDestructive": "Destructive",
+    "swatchBorder": "Border"
+  }
+}

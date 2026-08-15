@@ -1,0 +1,141 @@
+{
+  "common": {
+    "appName": "Pokedex",
+    "loading": "Cargando...",
+    "retry": "Reintentar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "back": "Volver",
+    "confirm": "Confirmar",
+    "error": {
+      "generic": "Ocurrió un error. Por favor, inténtalo de nuevo.",
+      "network": "No se pudo conectar con el servidor. Revisa tu conexión e inténtalo de nuevo."
+    }
+  },
+  "nav": {
+    "browse": "Explorar",
+    "collection": "Colección",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "logout": "Cerrar sesión"
+  },
+  "theme": {
+    "label": "Tema",
+    "emerald": "Esmeralda",
+    "firered": "Rojo Fuego",
+    "bwLight": "B&N Claro",
+    "bwDark": "B&N Oscuro"
+  },
+  "language": {
+    "label": "Idioma",
+    "en": "English",
+    "es": "Español"
+  },
+  "backend": {
+    "label": "Servidor",
+    "dotnet": ".NET",
+    "expressJs": "Express (JS)",
+    "expressTs": "Express (TS)",
+    "switched": "Cambiaste a {{name}}.",
+    "unreachable": "No se pudo conectar con {{name}}."
+  },
+  "auth": {
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "loginTitle": "Iniciar sesión",
+    "registerTitle": "Crear una cuenta",
+    "loginCta": "Iniciar sesión",
+    "registerCta": "Crear cuenta",
+    "haveAccount": "¿Ya tienes una cuenta?",
+    "noAccount": "¿No tienes una cuenta?",
+    "loggedInAs": "Sesión iniciada como {{email}}",
+    "localValidation": {
+      "emailRequired": "Ingresa tu correo electrónico.",
+      "passwordMin": "La contraseña debe tener al menos {{count}} caracteres."
+    }
+  },
+  "browse": {
+    "title": "Explorar Pokémon",
+    "pageSize": "Por página",
+    "page": "Página",
+    "of": "de",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "empty": "No se encontraron Pokémon.",
+    "abilities": "Habilidades",
+    "category": "Categoría",
+    "weight": "Peso",
+    "hiddenAbility": "Habilidad oculta"
+  },
+  "detail": {
+    "stats": "Estadísticas",
+    "types": "Tipos",
+    "abilities": "Habilidades",
+    "description": "Descripción",
+    "evolutionChain": "Cadena evolutiva",
+    "height": "Altura",
+    "weight": "Peso",
+    "sync": "Sincronizar a la colección",
+    "syncSuccess": "Se agregó a tu colección.",
+    "loginToSync": "Inicia sesión para sincronizar este Pokémon con tu colección.",
+    "notFound": "No se encontró el Pokémon."
+  },
+  "collection": {
+    "title": "Mi Colección",
+    "empty": "Tu colección está vacía.",
+    "emptyCta": "Explora Pokémon y sincroniza tus favoritos.",
+    "localizedName": "Apodo",
+    "region": "Región",
+    "classificationTag": "Etiqueta",
+    "description": "Notas",
+    "editTitle": "Editar entrada",
+    "deleteConfirmTitle": "¿Eliminar esta entrada?",
+    "deleteConfirmBody": "Esto la quitará de tu colección. Esta acción no se puede deshacer.",
+    "updated": "Entrada actualizada.",
+    "deleted": "Entrada eliminada.",
+    "fieldMax": "Máximo {{count}} caracteres."
+  },
+  "stats": {
+    "hp": "PS",
+    "attack": "Ataque",
+    "defense": "Defensa",
+    "special-attack": "Ataque Especial",
+    "special-defense": "Defensa Especial",
+    "speed": "Velocidad"
+  },
+  "showcase": {
+    "title": "Muestra de temas",
+    "subtitle": "Cada superficie de abajo depende de los tokens de diseño — cambia el tema desde el encabezado para verificar las cuatro paletas.",
+    "buttonsTitle": "Botones",
+    "buttonsDescription": "Todas las variantes y tamaños",
+    "variantDefault": "Predeterminado",
+    "variantSecondary": "Secundario",
+    "variantOutline": "Contorno",
+    "variantGhost": "Fantasma",
+    "variantDestructive": "Destructivo",
+    "sizeSmall": "Pequeño",
+    "sizeDefault": "Predeterminado",
+    "sizeLarge": "Grande",
+    "iconButtonLabel": "Botón de ícono",
+    "openDialog": "Abrir diálogo",
+    "dialogTitle": "Diálogo basado en tokens",
+    "dialogDescription": "Las tarjetas, superposiciones y anillos de foco siguen el tema activo.",
+    "badgesTitle": "Insignias y controles de formulario",
+    "badgesDescription": "Variantes de insignia, campo de texto y etiqueta",
+    "searchLabel": "Buscar",
+    "searchPlaceholder": "Busca un pokemon...",
+    "loadingTitle": "Estado de carga",
+    "loadingDescription": "Marcadores de posición tipo esqueleto",
+    "paletteTitle": "Tokens de paleta",
+    "paletteDescription": "Muestras en bruto del tema activo",
+    "swatchPrimary": "Primario",
+    "swatchSecondary": "Secundario",
+    "swatchAccent": "Acento",
+    "swatchMuted": "Atenuado",
+    "swatchDestructive": "Destructivo",
+    "swatchBorder": "Borde"
+  }
+}

@@ -5,6 +5,9 @@ import { createRoot } from 'react-dom/client'
 // Styles
 import './index.css'
 
+// i18n
+import './i18n/I18n'
+
 // Themes
 import { ThemeProvider } from './themes/ThemeProvider'
 
