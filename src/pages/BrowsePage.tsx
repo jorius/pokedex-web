@@ -31,7 +31,13 @@ import { Button } from '../components/ui/Button'
 import { Card, CardContent } from '../components/ui/Card'
 import { Skeleton } from '../components/ui/Skeleton'
 
-const GRID_CLASS = 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+/**
+ * Two columns from the narrowest phone up. One column at 412px made every card ~480px tall, so a
+ * 20-entry page was ~9,600px of scrolling and under two cards were ever on screen; two columns put
+ * four in view and halve the travel. The cards hold up at the ~186px this leaves them because the
+ * only long strings they carry — category and ability names — already wrap rather than truncate.
+ */
+const GRID_CLASS = 'grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4'
 
 /** First-paint guesses only — useVirtualList measures the real grid as soon as cards exist. */
 const ESTIMATED_ROW_HEIGHT = 420

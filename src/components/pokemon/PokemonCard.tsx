@@ -28,8 +28,10 @@ export function PokemonCard({ pokemon }: PokemonCardProps): JSX.Element {
       className="group block h-full rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       <Card className="flex h-full flex-col overflow-hidden transition-all duration-200 group-hover:-translate-y-0.5 group-hover:bg-muted/50 group-hover:shadow-md">
-        <div className="relative flex aspect-square items-center justify-center bg-muted p-6">
-          <span aria-hidden className="absolute left-3 top-2 font-display text-sm text-muted-foreground">
+        {/* Tighter well padding on the narrow two-column phone grid, so the sprite keeps its size
+            when the card itself is only ~186px wide. */}
+        <div className="relative flex aspect-square items-center justify-center bg-muted p-3 sm:p-6">
+          <span aria-hidden className="absolute left-2 top-1.5 font-display text-xs text-muted-foreground sm:left-3 sm:top-2 sm:text-sm">
             {formatPokedexNumber(pokemon.pokeApiId)}
           </span>
           {pokemon.spriteUrl !== null ? (
@@ -43,9 +45,11 @@ export function PokemonCard({ pokemon }: PokemonCardProps): JSX.Element {
             <span aria-hidden className="font-display text-6xl text-muted-foreground/50">?</span>
           )}
         </div>
-        <div className="flex flex-1 flex-col gap-2 p-4">
-          <h2 className="font-display text-lg font-bold capitalize leading-tight">{humanizeSlug(pokemon.name)}</h2>
-          <p className="flex items-baseline justify-between gap-2 text-xs text-muted-foreground">
+        <div className="flex flex-1 flex-col gap-1.5 p-3 sm:gap-2 sm:p-4">
+          <h2 className="font-display text-base font-bold capitalize leading-tight sm:text-lg">{humanizeSlug(pokemon.name)}</h2>
+          {/* Wraps instead of squeezing: at two columns on a phone the category and the weight do
+              not both fit on one line, and a category clipped to "Seed Poké…" says nothing. */}
+          <p className="flex flex-wrap items-baseline justify-between gap-x-2 text-xs text-muted-foreground">
             {pokemon.category !== null && <span>{pokemon.category}</span>}
             <span className="ml-auto whitespace-nowrap">{t('browse.weightValue', { value: formatTenths(pokemon.weight) })}</span>
           </p>

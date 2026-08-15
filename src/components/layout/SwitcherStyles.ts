@@ -12,8 +12,11 @@
  * itself shows. Each keeps `title` + `aria-label`, so nothing is lost to a screen reader.
  */
 
-/** Icon-only trigger. size-10 is also the minimum comfortable touch target. */
-export const ICON_TRIGGER_CLASS = 'size-10 shrink-0 justify-center px-0'
+/**
+ * Icon-only trigger. Square at the desktop control height (h-9), since it renders only at xl —
+ * below that these two switchers are full-width labelled rows in the drawer instead.
+ */
+export const ICON_TRIGGER_CLASS = 'size-9 shrink-0 justify-center px-0'
 
 /** The one labelled trigger left on the desktop bar. */
 export const BACKEND_TRIGGER_CLASS = 'w-38'

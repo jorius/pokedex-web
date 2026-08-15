@@ -47,7 +47,12 @@ export function CollectionEntryCard({ record, onEdit, onDelete }: CollectionEntr
       <Link
         to={`/pokemon/${record.pokeApiId}`}
         className={cn(
-          'flex min-w-0 flex-1 flex-col gap-4 rounded-md outline-none transition-colors duration-200 sm:flex-row sm:items-center',
+          // Sprite BESIDE the text at every width, not stacked on a phone. Stacked, an 80px sprite
+          // sat alone on its own row with 250px of empty card beside it and pushed each entry to
+          // ~270px tall; side by side an entry is ~150px, so a seven-entry collection is one
+          // screen-and-a-bit instead of two. `items-start` on the narrow layout keeps the sprite
+          // aligned with the name rather than floating against a tall description.
+          'flex min-w-0 flex-1 flex-row items-start gap-3 rounded-md outline-none transition-colors duration-200 sm:items-center sm:gap-4',
           'hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         )}
       >

@@ -50,7 +50,9 @@ export function WalletChip(): JSX.Element | null {
       title={t('economy.walletTitle')}
       aria-label={t('economy.walletAria', { credits, balls })}
       className={cn(
-        'flex h-9 shrink-0 items-center gap-2 rounded-md border border-input bg-card px-3 text-sm font-bold text-foreground shadow-sm',
+        // h-10 below lg (a tappable link to the shop), h-9 from lg up so it keeps sitting on the
+        // same baseline as the desktop bar's Select triggers.
+        'flex h-10 shrink-0 items-center gap-2 rounded-md border border-input bg-card px-2.5 text-sm font-bold text-foreground shadow-sm lg:h-9 lg:px-3',
         'transition-colors hover:bg-muted outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
       )}
     >

@@ -95,7 +95,10 @@ function ToastCard({ toast, onDismiss, onPause, onResume }: ToastCardProps): JSX
         aria-label={t('common.dismiss')}
         onClick={(): void => onDismiss(toast.id)}
         className={cn(
-          'shrink-0 cursor-pointer rounded-sm p-1 text-muted-foreground transition-colors hover:text-foreground',
+          // The dismiss is the only control on a toast and it is aimed at with a thumb — a 24px
+          // icon-and-padding box was the smallest target in the app. 40px below lg, unchanged above.
+          'grid size-10 shrink-0 cursor-pointer place-items-center rounded-md text-muted-foreground transition-colors',
+          'hover:bg-muted hover:text-foreground lg:size-7',
           'outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
         )}
       >

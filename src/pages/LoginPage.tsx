@@ -111,9 +111,15 @@ export function LoginPage(): JSX.Element {
           </form>
         </CardContent>
         <CardFooter className="justify-center">
-          <p className="text-sm text-muted-foreground">
-            {t('auth.noAccount')}{' '}
-            <Link to="/register" className="font-bold text-primary hover:underline">
+          {/* The link is the way to the other half of the auth flow, so on a phone it gets a
+              44px tap box of its own (the flex row supplies the space the removed {' '} did).
+              From lg it collapses back to the plain inline link it has always been. */}
+          <p className="flex flex-wrap items-center justify-center gap-x-1.5 text-sm text-muted-foreground">
+            {t('auth.noAccount')}
+            <Link
+              to="/register"
+              className="inline-flex min-h-11 items-center rounded-md px-2 font-bold text-primary hover:underline lg:min-h-0 lg:px-0"
+            >
               {t('auth.registerCta')}
             </Link>
           </p>

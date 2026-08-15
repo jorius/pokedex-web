@@ -98,7 +98,9 @@ export function Header(): JSX.Element {
           to="/"
           aria-label={t('nav.browse')}
           className={cn(
-            'flex shrink-0 items-center gap-2.5 rounded-md outline-none',
+            // min-h-10 so the way home is a real touch target and not just the 28px the mark and
+            // its wordmark happen to occupy.
+            'flex min-h-10 shrink-0 items-center gap-2.5 rounded-md outline-none',
             'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
           )}
         >

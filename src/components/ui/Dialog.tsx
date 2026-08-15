@@ -41,7 +41,13 @@ export function DialogContent({ className, children, ...props }: ComponentPropsW
       <DialogOverlay />
       <DialogPrimitive.Content
         className={cn(
-          'fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-card p-6 text-card-foreground shadow-lg rounded-lg',
+          'fixed left-1/2 top-1/2 z-50 grid w-[calc(100%-1.5rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4',
+          'rounded-lg border bg-card p-4 text-card-foreground shadow-lg sm:w-full sm:p-6',
+          // A centred, translated box has no natural ceiling: the edit dialog carries four fields
+          // and a 500-character note, which on a 915px phone ran off both ends of the screen with
+          // nothing to scroll. Cap it to the visible viewport (dvh tracks Android's collapsing
+          // address bar) and let the content itself scroll inside.
+          'max-h-[calc(100dvh-1.5rem)] overflow-y-auto overscroll-contain',
           className,
         )}
         {...props}
@@ -49,7 +55,9 @@ export function DialogContent({ className, children, ...props }: ComponentPropsW
         {children}
         <DialogPrimitive.Close
           className={cn(
-            'absolute right-4 top-4 rounded-sm opacity-60 transition-opacity hover:opacity-100 cursor-pointer',
+            // A 40px hit area on a control that sits under a thumb; the glyph stays 16px.
+            'absolute right-2 top-2 grid size-10 place-items-center rounded-md text-muted-foreground opacity-70 transition-opacity',
+            'hover:bg-muted hover:opacity-100 cursor-pointer sm:right-3 sm:top-3',
             'outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:pointer-events-none',
           )}
         >

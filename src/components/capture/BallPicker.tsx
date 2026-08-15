@@ -23,7 +23,9 @@ import type { BallOption } from './BallOptions'
 const PLATE_CLASS = 'flex flex-col items-center gap-1.5 rounded-md border bg-card/90 px-2.5 py-2 shadow-sm backdrop-blur-sm'
 
 const CHIP_CLASS = [
-  'flex cursor-pointer items-center gap-1 rounded-md border px-1.5 py-1 transition-colors',
+  // min-h-10 below lg: these chips choose the ball the whole page is about, and at 30px they were
+  // the smallest primary control in the app. They drop back to the original compact height at lg.
+  'flex min-h-10 cursor-pointer items-center gap-1 rounded-md border px-2 py-1 transition-colors lg:min-h-0 lg:px-1.5',
   'outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-card',
   'disabled:cursor-not-allowed',
 ].join(' ')

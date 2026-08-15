@@ -160,7 +160,9 @@ export function PokemonSearch(): JSX.Element {
             size="icon"
             aria-label={t('search.clear')}
             onClick={clearSearch}
-            className="absolute right-0.5 top-1/2 size-8 -translate-y-1/2 text-muted-foreground"
+            // Fills the field's own height on touch (h-10 field, size-10 button — it is `ghost`,
+            // so nothing is drawn until it is pressed) and shrinks back inside it from lg.
+            className="absolute right-0.5 top-1/2 size-10 -translate-y-1/2 text-muted-foreground lg:size-8"
           >
             <X aria-hidden />
           </Button>

@@ -104,9 +104,13 @@ export function RegisterPage(): JSX.Element {
           </form>
         </CardContent>
         <CardFooter className="justify-center">
-          <p className="text-sm text-muted-foreground">
-            {t('auth.haveAccount')}{' '}
-            <Link to="/login" className="font-bold text-primary hover:underline">
+          {/* Mirrors LoginPage's footer — see the note there. */}
+          <p className="flex flex-wrap items-center justify-center gap-x-1.5 text-sm text-muted-foreground">
+            {t('auth.haveAccount')}
+            <Link
+              to="/login"
+              className="inline-flex min-h-11 items-center rounded-md px-2 font-bold text-primary hover:underline lg:min-h-0 lg:px-0"
+            >
               {t('auth.loginCta')}
             </Link>
           </p>

@@ -50,15 +50,34 @@ import { Skeleton } from '../components/ui/Skeleton'
  */
 const DETAIL_GRID_CLASS = 'grid items-start gap-x-8 gap-y-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:grid-rows-[auto_1fr]'
 
-const ARTWORK_CELL_CLASS = 'relative lg:col-start-1 lg:row-start-1'
+/**
+ * Capped and centred while the page is a single column. Left uncapped, the square well simply
+ * matched the container: at 768 that is a 736px artwork card, over 1000px tall with the action
+ * button, which pushed the entire dossier past the fold on a portrait tablet. The cap lifts at lg,
+ * where the two-column grid sizes the cell instead. It never binds on a phone (max-w-md is wider
+ * than a 412px column), so nothing about the phone layout depends on it.
+ */
+const ARTWORK_CELL_CLASS = 'relative mx-auto w-full max-w-md lg:col-start-1 lg:row-start-1 lg:mx-0 lg:max-w-none'
 
 const DOSSIER_CELL_CLASS = 'flex flex-col gap-7 lg:col-start-2 lg:row-span-2 lg:row-start-1'
 
 const DESCRIPTION_CELL_CLASS = 'p-5 lg:col-start-1 lg:row-start-2'
 
-/** The sprite well is padded top-heavy so the name plate overlays empty space, not the creature.
- * `relative` anchors the capture stage, which covers exactly this box. */
-const ARTWORK_WELL_CLASS = 'relative flex aspect-square items-center justify-center overflow-hidden rounded-[calc(var(--radius)-1px)] bg-muted px-6 pb-12 pt-20'
+/**
+ * The sprite well is padded top-heavy so the name plate overlays empty space, not the creature.
+ * `relative` anchors the capture stage, which covers exactly this box.
+ *
+ * PHONES GET A TALLER WELL. On a square well the bottom padding is the only clearance the ball
+ * belt has, and at 412px that left the belt sitting 62px into the sprite's own box — fine for a
+ * wide creature that letterboxes anyway, but it cut the tail off a tall one (Onix, Dragonite).
+ * Below `sm` the well is 4:5 instead, which buys enough height to push the bottom padding past the
+ * belt entirely: the sprite box comes out slightly LARGER than it was (275px vs 250px at 412) and
+ * nothing overlaps it. From `sm` up the square well and its original padding are untouched.
+ */
+const ARTWORK_WELL_CLASS = [
+  'relative flex aspect-4/5 items-center justify-center overflow-hidden rounded-[calc(var(--radius)-1px)] bg-muted',
+  'px-4 pb-30 pt-20 sm:aspect-square sm:px-6 sm:pb-12',
+].join(' ')
 
 const NAME_PLATE_CLASS = 'min-w-0 flex-1 rounded-md border bg-card/90 px-3 py-2 shadow-sm backdrop-blur-sm'
 
