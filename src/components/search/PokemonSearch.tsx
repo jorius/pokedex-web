@@ -51,7 +51,9 @@ export function PokemonSearch(): JSX.Element {
   // while the field is empty so an empty query never hits the network.
   const idResult = useGetPokemonByIdQuery(Number(debouncedQuery), { skip: debouncedQuery === '' || !isNumeric })
   const nameResult = useGetPokemonByNameQuery(debouncedQuery, { skip: debouncedQuery === '' || isNumeric })
-  const { data, error, isFetching } = isNumeric ? idResult : nameResult
+  // `currentData`, never `data`: RTK Query keeps the last SUCCESSFUL payload in `data` across arg
+  // changes, so a miss after a hit would keep rendering the previous Pokémon's card.
+  const { currentData: match, error, isFetching } = isNumeric ? idResult : nameResult
 
   // Still typing (debounce pending) counts as searching — the panel must never show a stale
   // "not found" for a query the user has already moved past.
@@ -86,9 +88,9 @@ export function PokemonSearch(): JSX.Element {
       return
     }
 
-    if (event.key === 'Enter' && !isPending && data) {
+    if (event.key === 'Enter' && !isPending && match) {
       event.preventDefault()
-      void navigate(`/pokemon/${data.pokeApiId}`)
+      void navigate(`/pokemon/${match.pokeApiId}`)
     }
   }
 
@@ -102,28 +104,28 @@ export function PokemonSearch(): JSX.Element {
       )
     }
 
-    if (data) {
+    if (match) {
       return (
         <Link
-          to={`/pokemon/${data.pokeApiId}`}
+          to={`/pokemon/${match.pokeApiId}`}
           className={cn(
             'group flex items-center gap-3 rounded-lg p-3 outline-none hover:bg-muted',
             'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           )}
         >
           <span className="flex size-14 shrink-0 items-center justify-center rounded-md bg-muted p-1">
-            {data.spriteUrl !== null ? (
-              <img src={data.spriteUrl} alt="" className="size-full object-contain [image-rendering:pixelated]" />
+            {match.spriteUrl !== null ? (
+              <img src={match.spriteUrl} alt="" className="size-full object-contain [image-rendering:pixelated]" />
             ) : (
               <span aria-hidden className="font-display text-2xl text-muted-foreground/50">?</span>
             )}
           </span>
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="flex items-baseline gap-2">
-              <span className="truncate font-display text-base font-bold capitalize">{humanizeSlug(data.name)}</span>
-              <span className="font-display text-xs text-muted-foreground">{formatPokedexNumber(data.pokeApiId)}</span>
+              <span className="truncate font-display text-base font-bold capitalize">{humanizeSlug(match.name)}</span>
+              <span className="font-display text-xs text-muted-foreground">{formatPokedexNumber(match.pokeApiId)}</span>
             </span>
-            {data.category !== null && <span className="truncate text-xs text-muted-foreground">{data.category}</span>}
+            {match.category !== null && <span className="truncate text-xs text-muted-foreground">{match.category}</span>}
           </span>
           <span aria-hidden className="hidden shrink-0 text-xs text-muted-foreground sm:block">{t('search.hint')}</span>
         </Link>
