@@ -1,0 +1,257 @@
+/*
+ * Cabinet motion. These keyframes live beside the component rather than in src/index.css for the
+ * same reason the capture throw does: only the slots use them, and the shared stylesheet stays
+ * tokens plus the toast motion it already owns.
+ *
+ * COLOR RULE: nothing here names a colour. Every tint is mixed from `currentColor` or a theme
+ * custom property, so a reel window, a marquee bulb and a jackpot ray all stay inside whichever of
+ * the nine themes is active.
+ *
+ * REEL GEOMETRY CONTRACT (SlotReel.tsx)
+ *   .slots-window  fixes the height of ONE symbol (--slots-cell) and clips everything else.
+ *   .slots-strip   is a column of --slots-pool + 1 cells, the last a copy of the first, so the
+ *                  roll can translate by exactly --slots-pool cells and land back where it began —
+ *                  that repeat is what makes an infinite linear animation seamless.
+ *   --slots-pool   is set inline from the sprite pool's length (unitless, multiplied in calc).
+ *   --slots-speed  is set inline per reel, so three reels never roll as one block.
+ */
+
+.slots-window {
+  --slots-cell: 96px;
+  position: relative;
+  height: var(--slots-cell);
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .slots-window {
+    --slots-cell: 120px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .slots-window {
+    --slots-cell: 140px;
+  }
+}
+
+.slots-strip {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+/*
+ * Flex, not grid, and the sprite is sized by HEIGHT. A grid cell's implicit row is content-sized,
+ * so a percentage max-height on the image inside it has no definite box to resolve against and
+ * silently does nothing — the window is wider than it is tall, `max-width` won, and every symbol
+ * was blown up to the reel's width and beheaded by the clip. A flex item's percentage height
+ * resolves against the container's definite height, which is exactly the drum's cell.
+ */
+.slots-cell {
+  height: var(--slots-cell);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+}
+
+.slots-cell img {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+}
+
+/* CRT scanlines over the machine's face. 4% ink on the light themes, 4% paper on the dark ones —
+   enough to read as a screen, never enough to fight the sprites behind it. */
+.slots-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--foreground) 4%, transparent) 0 1px,
+    transparent 1px 3px
+  );
+}
+
+/* Jackpot only: the whole face of the machine flares in the theme's accent for half a beat. This
+   is why the flash is a ::before with a z-index (the scanlines are the ::after) — a pseudo-element
+   without one paints under the reels, and the flare has to wash over them. */
+.slots-flash::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--accent) 60%, transparent);
+  animation: slots-flash 640ms ease-out forwards;
+}
+
+@keyframes slots-flash {
+  0% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The roll. Linear on purpose — a reel is a constant-speed drum, and any easing here reads as the
+   machine hesitating. The blur is what sells the speed: without it, 12 sprites at 300ms look like
+   a flicker book rather than a moving drum. */
+.slots-strip--spin {
+  animation: slots-roll var(--slots-speed, 320ms) linear infinite;
+  filter: blur(1.5px) saturate(0.9);
+}
+
+@keyframes slots-roll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, calc(var(--slots-cell) * -1 * var(--slots-pool)), 0);
+  }
+}
+
+/* The stop: the symbol drops in from above and settles with one squash, so a reel "arrives"
+   instead of appearing. Keyed on the landed id in React, so every new result replays it. */
+.slots-face--land {
+  animation: slots-land 320ms cubic-bezier(0.2, 1.35, 0.4, 1);
+}
+
+@keyframes slots-land {
+  0% {
+    transform: translateY(-46%);
+  }
+  62% {
+    transform: translateY(5%) scaleY(0.93);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* The payline pulses only while the drums are turning — a still machine has a still line. */
+.slots-payline--live {
+  animation: slots-payline 900ms ease-in-out infinite;
+}
+
+@keyframes slots-payline {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Marquee bulbs: idle they sit at a constant dim, on a jackpot they chase in threes. */
+.slots-bulb--live {
+  animation: slots-bulb 780ms ease-in-out infinite alternate;
+}
+
+.slots-bulb--live:nth-child(3n + 2) {
+  animation-delay: 260ms;
+}
+
+.slots-bulb--live:nth-child(3n + 3) {
+  animation-delay: 520ms;
+}
+
+@keyframes slots-bulb {
+  from {
+    opacity: 0.25;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+/* Jackpot only: rays turning behind the words, and one shine crossing the panel as it arrives. */
+.slots-rays::before {
+  content: '';
+  position: absolute;
+  inset: -70%;
+  background: repeating-conic-gradient(
+    from 0deg,
+    color-mix(in srgb, currentColor 13%, transparent) 0deg 7deg,
+    transparent 7deg 15deg
+  );
+  animation: slots-rays 9s linear infinite;
+}
+
+@keyframes slots-rays {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.slots-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 36%, color-mix(in srgb, currentColor 30%, transparent) 50%, transparent 64%);
+  transform: translateX(-110%);
+  animation: slots-shine 1100ms ease-out 140ms;
+}
+
+@keyframes slots-shine {
+  to {
+    transform: translateX(110%);
+  }
+}
+
+/* The panel arriving with a result. Distinct per outcome in the component; the pop is shared. */
+.slots-panel--pop {
+  animation: slots-panel-pop 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slots-panel-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Belt and braces. The sequence already skips the roll entirely under reduced motion — the reels
+ * never enter a spinning state, they simply show the result — so most of this never mounts. It
+ * stays because a machine that flashes is exactly what a reduced-motion setting is asking about.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .slots-strip--spin,
+  .slots-face--land,
+  .slots-payline--live,
+  .slots-bulb--live,
+  .slots-panel--pop,
+  .slots-rays::before,
+  .slots-shine::after,
+  .slots-flash::before {
+    animation: none !important;
+  }
+
+  .slots-flash::before {
+    display: none;
+  }
+
+  .slots-strip--spin {
+    filter: none;
+  }
+
+  .slots-bulb--live {
+    opacity: 1;
+  }
+
+  .slots-shine::after {
+    display: none;
+  }
+}

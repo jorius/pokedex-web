@@ -96,9 +96,14 @@ export function Header(): JSX.Element {
             {/* Economy links are authenticated-only: both routes sit behind RequireAuth, so showing
                 them to a visitor would advertise a page that can only bounce them to /login. */}
             {user && (
-              <NavLink to="/shop" className={navLinkClassName}>
-                {t('nav.shop')}
-              </NavLink>
+              <>
+                <NavLink to="/shop" className={navLinkClassName}>
+                  {t('nav.shop')}
+                </NavLink>
+                <NavLink to="/slots" className={navLinkClassName}>
+                  {t('nav.slots')}
+                </NavLink>
+              </>
             )}
           </nav>
         </div>

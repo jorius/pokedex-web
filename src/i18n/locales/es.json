@@ -28,6 +28,7 @@
     "browse": "Explorar",
     "collection": "Colección",
     "shop": "Tienda",
+    "slots": "Tragaperras",
     "login": "Iniciar sesión",
     "register": "Registrarse",
     "logout": "Cerrar sesión"
@@ -163,6 +164,40 @@
     "buyTotal": "Comprar · {{amount}}",
     "cannotAfford": "Créditos insuficientes",
     "bought": "Compraste {{count}} × {{ball}}."
+  },
+  "slots": {
+    "title": "Salón de Juegos",
+    "subtitle": "Tres rodillos, una línea. Los legendarios pagan más.",
+    "marquee": "Tragaperras Voltorb",
+    "reelLabel": "Rodillo {{index}}",
+    "spin": "Girar",
+    "spinning": "Girando",
+    "rolling": "Girando…",
+    "cost": "{{amount}} créditos por tirada",
+    "idleHint": "Inserta {{amount}} créditos y tira.",
+    "needCredits": "Necesitas {{amount}} créditos para jugar.",
+    "goToShop": "Recarga en la tienda",
+    "payout": "Ganaste {{amount}} créditos",
+    "spent": "Gastaste {{amount}} créditos",
+    "payoutShort": "+{{amount}}",
+    "costShort": "−{{amount}}",
+    "outcome": {
+      "jackpot": "¡Premio gordo!",
+      "triple": "¡Trío!",
+      "pair": "Pareja",
+      "none": "Sin premio"
+    },
+    "toast": {
+      "jackpot": "¡PREMIO GORDO! Tres legendarios: ¡{{amount}} créditos!",
+      "triple": "¡Trío! {{amount}} créditos.",
+      "pair": "Pareja: {{amount}} créditos.",
+      "none": "Esta vez no hubo premio."
+    },
+    "history": {
+      "title": "Tiradas recientes",
+      "total": "{{count}} tiradas",
+      "empty": "Aún no hay tiradas. Tira de la palanca."
+    }
   },
   "stats": {
     "hp": "PS",

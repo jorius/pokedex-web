@@ -28,6 +28,7 @@
     "browse": "Browse",
     "collection": "Collection",
     "shop": "Shop",
+    "slots": "Slots",
     "login": "Log in",
     "register": "Register",
     "logout": "Log out"
@@ -163,6 +164,40 @@
     "buyTotal": "Buy · {{amount}}",
     "cannotAfford": "Not enough credits",
     "bought": "Bought {{count}} × {{ball}}."
+  },
+  "slots": {
+    "title": "Game Corner",
+    "subtitle": "Three reels, one payline. Legendaries pay the most.",
+    "marquee": "Voltorb Slots",
+    "reelLabel": "Reel {{index}}",
+    "spin": "Spin",
+    "spinning": "Rolling",
+    "rolling": "Rolling…",
+    "cost": "{{amount}} credits a pull",
+    "idleHint": "Insert {{amount}} credits and pull.",
+    "needCredits": "You need {{amount}} credits to play.",
+    "goToShop": "Top up at the shop",
+    "payout": "You won {{amount}} credits",
+    "spent": "You spent {{amount}} credits",
+    "payoutShort": "+{{amount}}",
+    "costShort": "−{{amount}}",
+    "outcome": {
+      "jackpot": "Jackpot!",
+      "triple": "Triple!",
+      "pair": "Pair",
+      "none": "No match"
+    },
+    "toast": {
+      "jackpot": "JACKPOT! Three legendaries — {{amount}} credits!",
+      "triple": "Triple! {{amount}} credits.",
+      "pair": "A pair — {{amount}} credits.",
+      "none": "No match this time."
+    },
+    "history": {
+      "title": "Recent spins",
+      "total": "{{count}} spins",
+      "empty": "No spins yet. Pull the lever."
+    }
   },
   "stats": {
     "hp": "HP",
