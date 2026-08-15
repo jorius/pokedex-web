@@ -1,5 +1,5 @@
 /*
- * The four Pokemon-game themes (plan: "Theme design (binding)").
+ * The nine Pokemon-game themes (four from the plan's "Theme design (binding)", five added in B9).
  * Each theme is a full CSS custom-property set on :root[data-theme="..."]; components consume
  * them exclusively through the Tailwind tokens mapped in src/index.css — never raw colors.
  *
@@ -15,16 +15,40 @@
  *   lighter red, white button text would fail (2.77:1), so destructive-foreground is
  *   near-black #0C0C0E (7.06:1 on #F87171).
  *
+ * B9 themes — every pair below was computed, not eyeballed; the tightest ratio in each theme is
+ * quoted. Unlike emerald/firered, the five new themes also clear 4.5:1 for `text-primary` used as
+ * body text (active nav link, auth footer links) on BOTH card and background:
+ * - leafgreen: a bright Venusaur green would fail as link text, so primary is the deeper leaf
+ *   #1F7A3A — 5.38:1 on card, 4.92:1 on background, and 5.38:1 under white button text. Sky-blue
+ *   secondary #2F77B8 sits at 4.72:1 with white. The soft-pink accent #F4A7BD is far too light for
+ *   white, so accent-foreground is a deep berry #3D1420 (8.42:1).
+ * - ruby: dark ground, so the Groudon red is inverted like bw-dark's — a molten #F4703C carries
+ *   near-black #1A0F09 text (6.48:1) and reads 5.86:1 as link text on card. destructive stays a
+ *   distinct rose #FB7185 (6.33:1 on card) so error text never reads as "primary red".
+ * - sapphire: abyssal #14468C is comfortably AA (9.19:1 white); the Kyogre crimson accent #CF3446
+ *   takes white at 4.96:1 — the tightest pair in the theme — and destructive is pushed deeper to
+ *   #96131F (8.71:1) so it stays distinguishable from that accent.
+ * - diamond: the temporal teal was darkened #0D9AA6 -> #0C94A0 because the lighter teal missed the
+ *   3:1 non-text minimum against the platinum background as a focus ring (2.99:1 -> 3.21:1);
+ *   accent-foreground is near-black #02191F (4.96:1) since white on teal is only ~2.4:1.
+ * - pearl: rose #BF2E6D takes white at 5.49:1; the Palkia violet accent #7C3AED takes white at
+ *   5.70:1. secondary is inverted here (pale lilac panel + deep plum text, 11.69:1) to keep the
+ *   theme airy — a saturated violet secondary would have collided with the accent.
+ *
  * --success / --info (added with the toast system, B3) are the one deliberate extension to the
  * original 18-token contract. Status colour cannot be borrowed from the decorative palette: with
  * success = --primary, firered's red primary made "saved" and "failed" the same colour, and with
- * info = --accent, bw-light's Reshiram blue and firered's amber both read as anything but
- * "information". So each theme names its own green and blue, tinted to fit (cool and deep on the
- * light themes, light on bw-dark where a mid-tone green would fail against near-black). Every
- * pair clears AA; firered's success #1F7A45 with white is the tightest at 5.35:1.
+ * info = --accent, sapphire's Kyogre-crimson accent rendered every hint as a red alert. So each
+ * theme names its own green and blue, tinted to fit (cool and deep on the light themes, light on
+ * the dark ones where a mid-tone green would fail against near-black). Every pair clears AA;
+ * leafgreen's info #2F77B8 with white is the tightest at 4.72:1.
+ *
+ * --radius is part of each theme's character, not a constant: 0.125rem diamond (crystalline) and
+ * 0.25rem bw (clinical) at the sharp end, 0.875rem sapphire (fluid) and 1rem pearl (pearlescent)
+ * at the round end.
  *
  * --overlay is the dialog scrim: a foreground-tinted near-black at 60% for light themes,
- * deeper on bw-dark so the scrim still reads against OLED-black surfaces.
+ * deeper on the dark themes (bw-dark, ruby) so the scrim still reads against near-black surfaces.
  */
 
 /* Default theme (emerald) — safety net for when the no-flash script has not set data-theme */
@@ -167,3 +191,144 @@
   color-scheme: dark;
 }
 
+/* Pokemon LeafGreen — Venusaur: bright leaf green over a pale verdant ground, sky-blue support,
+   soft-pink bloom accent. Deliberately brighter and bluer than emerald's parchment-and-gold. */
+:root[data-theme='leafgreen'] {
+  --background: #f1f7e6;
+  --foreground: #16301d;
+  --card: #ffffff;
+  --card-foreground: #16301d;
+  --primary: #1f7a3a;
+  --primary-foreground: #ffffff;
+  --secondary: #2f77b8;
+  --secondary-foreground: #ffffff;
+  --accent: #f4a7bd;
+  --accent-foreground: #3d1420;
+  --muted: #e3efd2;
+  --muted-foreground: #465c46;
+  --border: #c6dcae;
+  --input: #c6dcae;
+  --ring: #1f7a3a;
+  --destructive: #b3261e;
+  --destructive-foreground: #ffffff;
+  --success: #1f7a3a;
+  --success-foreground: #ffffff;
+  --info: #2f77b8;
+  --info-foreground: #ffffff;
+  --overlay: rgb(22 48 29 / 0.6);
+  --radius: 0.625rem;
+  color-scheme: light;
+}
+
+/* Pokemon Ruby — Groudon: charcoal magma-chamber ground with molten red and lava-orange heat.
+   The only warm-dark theme; bw-dark is neutral/electric, this one glows. */
+:root[data-theme='ruby'] {
+  --background: #17110e;
+  --foreground: #f6ece3;
+  --card: #241a15;
+  --card-foreground: #f6ece3;
+  --primary: #f4703c;
+  --primary-foreground: #1a0f09;
+  --secondary: #4d3d34;
+  --secondary-foreground: #f6ece3;
+  --accent: #f2a13a;
+  --accent-foreground: #1f1206;
+  --muted: #2c211b;
+  --muted-foreground: #bda99c;
+  --border: #3b2c24;
+  --input: #3b2c24;
+  --ring: #f2a13a;
+  --destructive: #fb7185;
+  --destructive-foreground: #1a0f09;
+  --success: #5fd18a;
+  --success-foreground: #1a0f09;
+  --info: #7cc7f5;
+  --info-foreground: #1a0f09;
+  --overlay: rgb(0 0 0 / 0.72);
+  --radius: 0.375rem;
+  color-scheme: dark;
+}
+
+/* Pokemon Sapphire — Kyogre: abyssal navy over ice-blue surfaces, with the crimson of its markings. */
+:root[data-theme='sapphire'] {
+  --background: #eaf2fa;
+  --foreground: #0d1f31;
+  --card: #ffffff;
+  --card-foreground: #0d1f31;
+  --primary: #14468c;
+  --primary-foreground: #ffffff;
+  --secondary: #0d7490;
+  --secondary-foreground: #ffffff;
+  --accent: #cf3446;
+  --accent-foreground: #ffffff;
+  --muted: #d9e8f4;
+  --muted-foreground: #4a6379;
+  --border: #bfd6e8;
+  --input: #bfd6e8;
+  --ring: #0d7490;
+  --destructive: #96131f;
+  --destructive-foreground: #ffffff;
+  --success: #0f7a52;
+  --success-foreground: #ffffff;
+  --info: #1668a8;
+  --info-foreground: #ffffff;
+  --overlay: rgb(13 31 49 / 0.6);
+  --radius: 0.875rem;
+  color-scheme: light;
+}
+
+/* Pokemon Diamond — Dialga: brushed platinum surfaces, steel-blue structure, temporal teal accent. */
+:root[data-theme='diamond'] {
+  --background: #edf1f5;
+  --foreground: #131a21;
+  --card: #fbfcfe;
+  --card-foreground: #131a21;
+  --primary: #2f5c85;
+  --primary-foreground: #ffffff;
+  --secondary: #55697d;
+  --secondary-foreground: #ffffff;
+  --accent: #0c94a0;
+  --accent-foreground: #02191f;
+  --muted: #e0e6ec;
+  --muted-foreground: #526069;
+  --border: #c8d2dc;
+  --input: #c8d2dc;
+  --ring: #0c94a0;
+  --destructive: #b02418;
+  --destructive-foreground: #ffffff;
+  --success: #1a7a4f;
+  --success-foreground: #ffffff;
+  --info: #1f6ea8;
+  --info-foreground: #ffffff;
+  --overlay: rgb(19 26 33 / 0.6);
+  --radius: 0.125rem;
+  color-scheme: light;
+}
+
+/* Pokemon Pearl — Palkia: pearlescent white ground, rose primary, spatial violet accent. */
+:root[data-theme='pearl'] {
+  --background: #fdf6fa;
+  --foreground: #2b1a2e;
+  --card: #ffffff;
+  --card-foreground: #2b1a2e;
+  --primary: #bf2e6d;
+  --primary-foreground: #ffffff;
+  --secondary: #eddff4;
+  --secondary-foreground: #33203a;
+  --accent: #7c3aed;
+  --accent-foreground: #ffffff;
+  --muted: #f7ecf4;
+  --muted-foreground: #6b5271;
+  --border: #e8d6e6;
+  --input: #e8d6e6;
+  --ring: #7c3aed;
+  --destructive: #b02418;
+  --destructive-foreground: #ffffff;
+  --success: #1e7d4f;
+  --success-foreground: #ffffff;
+  --info: #2563cf;
+  --info-foreground: #ffffff;
+  --overlay: rgb(43 26 46 / 0.6);
+  --radius: 1rem;
+  color-scheme: light;
+}

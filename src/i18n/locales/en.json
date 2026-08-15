@@ -34,7 +34,12 @@
   "theme": {
     "label": "Theme",
     "emerald": "Emerald",
+    "ruby": "Ruby",
+    "sapphire": "Sapphire",
     "firered": "FireRed",
+    "leafgreen": "LeafGreen",
+    "diamond": "Diamond",
+    "pearl": "Pearl",
     "bwLight": "B&W Light",
     "bwDark": "B&W Dark"
   },

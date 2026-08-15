@@ -18,6 +18,7 @@ import { getRefreshToken } from '../../store/RefreshTokenStorage'
 
 // Themes
 import { THEMES, isTheme } from '../../themes/ThemeContext'
+import type { Theme } from '../../themes/ThemeContext'
 
 // Components
 import { PokeballMark } from '../brand/PokeballMark'
@@ -29,12 +30,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 
 // Theme keys map 1:1 to i18n `theme.*` keys, kept in a lookup so a raw `theme` value
 // (e.g. 'bw-light') resolves to its camelCase key (e.g. 'bwLight') without a switch.
+// `satisfies` (not an annotation) keeps the literal value types t() needs while still failing the
+// build if a theme is added to THEMES without a label here.
 const THEME_I18N_KEYS = {
   emerald: 'emerald',
+  ruby: 'ruby',
+  sapphire: 'sapphire',
   firered: 'firered',
+  leafgreen: 'leafgreen',
+  diamond: 'diamond',
+  pearl: 'pearl',
   'bw-light': 'bwLight',
   'bw-dark': 'bwDark',
-} as const
+} as const satisfies Record<Theme, string>
 
 const NAV_LINK_CLASS = 'text-sm font-bold text-muted-foreground transition-colors hover:text-foreground'
 const NAV_LINK_ACTIVE_CLASS = 'text-primary hover:text-primary'

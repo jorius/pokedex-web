@@ -56,6 +56,61 @@ function renderAccents(variant: PokeballVariant, palette: PokeballPalette): JSX.
           <rect x="1.5" y="12.8" width="21" height="0.5" fill={palette.detail} />
         </>
       )
+    case 'friend':
+      // No dark crown here (Nest has one): leaving the bright leaf green uncovered is what keeps
+      // the two green balls apart at 22px — Friend reads light, Nest reads dark.
+      return (
+        <>
+          {/* ONE bold gold chevron, the opposite of Nest's four-tooth zigzag */}
+          <path d="M1.5 8.2 L12 4 L22.5 8.2 L22.5 10.6 L12 6.4 L1.5 10.6 Z" fill={palette.accent} />
+          {/* Deep-green underline holding the chevron off the band */}
+          <rect x="1.5" y="10.2" width="21" height="0.6" fill={palette.detail} />
+        </>
+      )
+    case 'level':
+      return (
+        <>
+          {/* Two thin gold meter bars, the short one on top — the Level Ball's gauge. Thin on
+              purpose: fatter bars turn the magma red into a sunset gradient. */}
+          <rect x="6.4" y="5.6" width="11.2" height="1.1" fill={palette.accent} />
+          <rect x="3.8" y="8" width="16.4" height="1.1" fill={palette.accent} />
+          {/* Dark seam under the band so the magma red never bleeds into the white lower half */}
+          <rect x="1.5" y="13.3" width="21" height="0.8" fill={palette.detail} />
+        </>
+      )
+    case 'dive':
+      return (
+        <>
+          {/* Deep-water shading over the crown */}
+          <circle cx="12" cy="0.8" r="6.2" fill={palette.detail} />
+          {/* The swell: a light-blue wave rolling across the upper hemisphere into the band */}
+          <path d="M2 8.8 C5.2 6.2 8.4 6.2 12 8.2 C15.6 10.2 18.8 8.6 22 6.6 L22 10.8 L2 10.8 Z" fill={palette.accent} />
+        </>
+      )
+    case 'net':
+      // Two diagonal families, 6 units apart, confined above the band — a mesh, not a moire:
+      // any tighter and the lattice turns to mud at the header's 22px.
+      return (
+        <g stroke={palette.accent} strokeWidth="0.9" strokeLinecap="round" fill="none">
+          <path d="M1 10.6 L10 1.6" />
+          <path d="M7 10.6 L16 1.6" />
+          <path d="M13 10.6 L22 1.6" />
+          <path d="M23 10.6 L14 1.6" />
+          <path d="M17 10.6 L8 1.6" />
+          <path d="M11 10.6 L2 1.6" />
+        </g>
+      )
+    case 'heal':
+      return (
+        <>
+          {/* Gold trim framing the rose band, top and bottom */}
+          <rect x="1.5" y="9.4" width="21" height="0.9" fill={palette.accent} />
+          <rect x="1.5" y="13.7" width="21" height="0.9" fill={palette.accent} />
+          {/* The two rose tabs riding the pink dome */}
+          <circle cx="6.6" cy="6.6" r="1.5" fill={palette.detail} />
+          <circle cx="17.4" cy="6.6" r="1.5" fill={palette.detail} />
+        </>
+      )
   }
 }
 

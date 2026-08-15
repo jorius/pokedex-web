@@ -11,7 +11,8 @@
     <script>
       // Apply the persisted theme before first paint so there is no flash of the default theme
       (function () {
-        var themes = ['emerald', 'firered', 'bw-light', 'bw-dark']
+        // Keep in sync with THEMES in src/themes/ThemeContext.ts (this file cannot import it)
+        var themes = ['emerald', 'ruby', 'sapphire', 'firered', 'leafgreen', 'diamond', 'pearl', 'bw-light', 'bw-dark']
         var theme = 'emerald'
         try {
           var stored = localStorage.getItem('pokedex.theme')

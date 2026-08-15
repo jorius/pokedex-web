@@ -34,7 +34,12 @@
   "theme": {
     "label": "Tema",
     "emerald": "Esmeralda",
+    "ruby": "Rubí",
+    "sapphire": "Zafiro",
     "firered": "Rojo Fuego",
+    "leafgreen": "Verde Hoja",
+    "diamond": "Diamante",
+    "pearl": "Perla",
     "bwLight": "B&N Claro",
     "bwDark": "B&N Oscuro"
   },
