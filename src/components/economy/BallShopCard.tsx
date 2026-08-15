@@ -50,7 +50,16 @@ export function BallShopCard({ entry, owned, credits }: BallShopCardProps): JSX.
   const [quantity, setQuantity] = useState<number>(MIN_QUANTITY)
   const [buyBalls, { isLoading: isBuying }] = useBuyBallsMutation()
 
-  const ballName = t(`economy.ballName.${entry.type}`)
+  /*
+   * The SERVER'S name for the ball, not a localized override.
+   *
+   * Ball names are data, exactly as BallOptions has always treated them for the catch belt: they
+   * come from the catalogue, they are what the 409s and the parity contract quote, and they are the
+   * same four strings in every language. The shop used to translate them from `economy.ballName.*`
+   * instead, which is how "Great Ball" on the detail page became "Super Ball" in the Spanish shop —
+   * one product with two names depending on which screen you were looking at.
+   */
+  const ballName = entry.name
   const total = entry.price * quantity
   const isAffordable = total <= credits
 

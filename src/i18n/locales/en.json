@@ -171,12 +171,6 @@
       "claimedLabel": "Claimed",
       "nextIn": "Next bonus in {{time}}",
       "claimed": "Daily bonus claimed — {{amount}} credits!"
-    },
-    "ballName": {
-      "poke": "Poké Ball",
-      "great": "Great Ball",
-      "ultra": "Ultra Ball",
-      "master": "Master Ball"
     }
   },
   "shop": {

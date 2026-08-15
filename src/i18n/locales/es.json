@@ -171,12 +171,6 @@
       "claimedLabel": "Reclamado",
       "nextIn": "Próximo bono en {{time}}",
       "claimed": "¡Bono diario reclamado: {{amount}} créditos!"
-    },
-    "ballName": {
-      "poke": "Poké Ball",
-      "great": "Super Ball",
-      "ultra": "Ultra Ball",
-      "master": "Master Ball"
     }
   },
   "shop": {
