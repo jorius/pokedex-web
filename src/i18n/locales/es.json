@@ -27,6 +27,7 @@
   "nav": {
     "browse": "Explorar",
     "collection": "Colección",
+    "shop": "Tienda",
     "login": "Iniciar sesión",
     "register": "Registrarse",
     "logout": "Cerrar sesión"
@@ -139,6 +140,29 @@
     "updated": "Entrada actualizada.",
     "deleted": "Entrada eliminada.",
     "fieldMax": "{{count}}/{{max}} caracteres."
+  },
+  "economy": {
+    "credits": "Créditos",
+    "catchRate": "Tasa de captura",
+    "owned": "Tienes {{count}}",
+    "walletTitle": "Tu cartera — abrir la tienda",
+    "walletAria": "Cartera: {{credits}} créditos, {{balls}} balls. Abrir la tienda.",
+    "ballName": {
+      "poke": "Poké Ball",
+      "great": "Super Ball",
+      "ultra": "Ultra Ball",
+      "master": "Master Ball"
+    }
+  },
+  "shop": {
+    "title": "Tienda Pokémon",
+    "subtitle": "Cambia créditos por balls. Cuanto mejor la ball, mejores las probabilidades.",
+    "quantityOf": "Cantidad de {{ball}}",
+    "decrease": "Reducir la cantidad",
+    "increase": "Aumentar la cantidad",
+    "buyTotal": "Comprar · {{amount}}",
+    "cannotAfford": "Créditos insuficientes",
+    "bought": "Compraste {{count}} × {{ball}}."
   },
   "stats": {
     "hp": "PS",

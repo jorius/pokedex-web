@@ -111,6 +111,54 @@ function renderAccents(variant: PokeballVariant, palette: PokeballPalette): JSX.
           <circle cx="17.4" cy="6.6" r="1.5" fill={palette.detail} />
         </>
       )
+    case 'poke':
+      return (
+        <>
+          {/* A specular gloss on the scarlet dome — the classic ball earns nothing else, and the
+              highlight is what stops it reading as a flat red disc at shop-card sizes. */}
+          <ellipse cx="8.6" cy="6.4" rx="3.2" ry="1.8" transform="rotate(-30 8.6 6.4)" fill={palette.accent} />
+          {/* Seam shadow under the band so the white shell reads as its own half */}
+          <rect x="1.5" y="13.3" width="21" height="0.7" fill={palette.detail} />
+        </>
+      )
+    case 'great':
+      return (
+        <>
+          {/* Red crown first, then the white bands over it: on the real ball the red patch is what
+              the two bands frame, so painting them in that order gets the layering right for free. */}
+          <circle cx="12" cy="0.4" r="5.6" fill={palette.detail} />
+          <path d="M3.2 10.7 L6.6 3 L8.3 3.7 L5.3 10.7 Z" fill={palette.accent} />
+          <path d="M20.8 10.7 L17.4 3 L15.7 3.7 L18.7 10.7 Z" fill={palette.accent} />
+        </>
+      )
+    case 'ultra':
+      return (
+        <>
+          {/* The H: two yellow uprights running the full height of the dome, joined by a crossbar.
+              The clip circle rounds off the tops of the uprights, which is exactly how the stamp
+              sits on the real ball's shoulder. Both legs must reach the band — a shadow bar drawn
+              across their full width once cut them in half and turned the H into a "π". */}
+          <rect x="6" y="3.6" width="2.6" height="7.1" fill={palette.accent} />
+          <rect x="15.4" y="3.6" width="2.6" height="7.1" fill={palette.accent} />
+          <rect x="6" y="5.7" width="12" height="2.2" fill={palette.accent} />
+          {/* Deeper gold under the crossbar only, between the legs — one step of depth, no cut. */}
+          <rect x="8.6" y="7.9" width="6.8" height="0.5" fill={palette.detail} />
+        </>
+      )
+    case 'master':
+      return (
+        <>
+          {/* Gold trim riding above the band, and the two studs flanking the M */}
+          <rect x="1.5" y="9.4" width="21" height="0.8" fill={palette.detail} />
+          <circle cx="5.4" cy="8.2" r="1.5" fill={palette.accent} />
+          <circle cx="18.6" cy="8.2" r="1.5" fill={palette.accent} />
+          {/* The M itself, hollowed through the middle so the purple shows between its legs */}
+          <path
+            d="M8.6 9.4 L8.6 4.2 L10.6 4.2 L12 6.6 L13.4 4.2 L15.4 4.2 L15.4 9.4 L13.7 9.4 L13.7 6.7 L12 9.2 L10.3 6.7 L10.3 9.4 Z"
+            fill={palette.accent}
+          />
+        </>
+      )
   }
 }
 

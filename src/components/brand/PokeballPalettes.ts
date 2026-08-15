@@ -16,8 +16,18 @@ import type { Theme } from '../../themes/ThemeContext'
  * dive = light-blue swell, net = black mesh, heal = gold band trim, premier = bare white,
  * luxury = gold pinstripes. Balls that share a hue (nest/friend green, repeat/level red) are
  * separated further by band and button treatment so they never read as the same mark.
+ *
+ * THE FOUR SHOP BALLS (poke/great/ultra/master) are a SECOND family, added for the economy: they
+ * are the ball TYPES the backend catalogue sells and the player throws, not theme mascots, so no
+ * theme maps to them (THEME_POKEBALL stays a nine-entry record) and they are addressed by
+ * `BallType` instead — see src/components/economy/BallArt.tsx. Their art is the canonical game
+ * art rather than an invented flourish, because the shop is where a player must recognise what
+ * they are buying at a glance: plain red poke, blue-and-red great with its white bands, the
+ * black-and-yellow ultra H, and the purple master with its pink M.
  */
-export type PokeballVariant = 'nest' | 'repeat' | 'premier' | 'luxury' | 'friend' | 'level' | 'dive' | 'net' | 'heal'
+export type PokeballVariant =
+  | 'nest' | 'repeat' | 'premier' | 'luxury' | 'friend' | 'level' | 'dive' | 'net' | 'heal'
+  | 'poke' | 'great' | 'ultra' | 'master'
 
 export interface PokeballPalette {
   /** Upper hemisphere fill. */
@@ -27,10 +37,12 @@ export interface PokeballPalette {
   /** Horizontal band across the middle. */
   band: string
   /** Signature flourish: nest gold teeth, repeat gold stripe, premier red seam, luxury gold pinstripes,
-   * friend gold chevron, level gold meter bars, dive light-blue swell, net black mesh, heal gold trim. */
+   * friend gold chevron, level gold meter bars, dive light-blue swell, net black mesh, heal gold trim,
+   * poke specular gloss, great white bands, ultra yellow H, master pink M. */
   accent: string
   /** Secondary detailing: nest deep-green cap, repeat black dots, premier seam shadow, luxury band edging,
-   * friend crown shading, level dark seam, dive deep-water crown, net silver rim, heal rose tabs. */
+   * friend crown shading, level dark seam, dive deep-water crown, net silver rim, heal rose tabs,
+   * poke seam shadow, great red crown, ultra gold shadow, master gold trim. */
   detail: string
   /** Outer silhouette ring — keeps the mark crisp when the ball body nears the surface color. */
   outline: string
@@ -163,5 +175,57 @@ export const POKEBALL_PALETTES: Record<PokeballVariant, PokeballPalette> = {
     buttonRim: '#cf4266',
     buttonRing: '#fdfbfd',
     buttonCore: '#eec24a',
+  },
+  /** Poké Ball (shop, 200cr / 40%) — THE ball: scarlet dome, white shell, black band. Its only
+   * flourish is a specular gloss, which is also what separates it from the other two red balls:
+   * repeat carries a gold stripe and level a pair of gold meter bars. */
+  poke: {
+    top: '#e3372b',
+    bottom: '#f6f5f3',
+    band: '#1a181c',
+    accent: '#f58a80',
+    detail: '#dbd7d2',
+    outline: '#1a181c',
+    buttonRim: '#1a181c',
+    buttonRing: '#ffffff',
+    buttonCore: '#ffffff',
+  },
+  /** Great Ball (shop, 600cr / 60%) — cobalt dome under a red crown, the two white bands sweeping
+   * up the sides, white shell. */
+  great: {
+    top: '#2f6fd0',
+    bottom: '#f6f5f3',
+    band: '#1a181c',
+    accent: '#ffffff',
+    detail: '#d3362c',
+    outline: '#1a181c',
+    buttonRim: '#1a181c',
+    buttonRing: '#ffffff',
+    buttonCore: '#ffffff',
+  },
+  /** Ultra Ball (shop, 1200cr / 80%) — black dome stamped with the yellow H, white shell. */
+  ultra: {
+    top: '#26252b',
+    bottom: '#f6f5f3',
+    band: '#1a181c',
+    accent: '#f5c518',
+    detail: '#b98f0c',
+    outline: '#1a181c',
+    buttonRim: '#1a181c',
+    buttonRing: '#ffffff',
+    buttonCore: '#f5c518',
+  },
+  /** Master Ball (shop, 5000cr / 100%) — royal purple dome with the pink M between its two studs,
+   * gold trim above the band and around the button: the guaranteed catch should look expensive. */
+  master: {
+    top: '#6b3ba6',
+    bottom: '#f4f0f8',
+    band: '#1c1726',
+    accent: '#ef5fa8',
+    detail: '#dcb44a',
+    outline: '#1c1726',
+    buttonRim: '#dcb44a',
+    buttonRing: '#f4f0f8',
+    buttonCore: '#ef5fa8',
   },
 }

@@ -27,6 +27,7 @@
   "nav": {
     "browse": "Browse",
     "collection": "Collection",
+    "shop": "Shop",
     "login": "Log in",
     "register": "Register",
     "logout": "Log out"
@@ -139,6 +140,29 @@
     "updated": "Entry updated.",
     "deleted": "Entry deleted.",
     "fieldMax": "{{count}}/{{max}} characters."
+  },
+  "economy": {
+    "credits": "Credits",
+    "catchRate": "Catch rate",
+    "owned": "Owned {{count}}",
+    "walletTitle": "Your wallet — open the shop",
+    "walletAria": "Wallet: {{credits}} credits, {{balls}} balls. Open the shop.",
+    "ballName": {
+      "poke": "Poké Ball",
+      "great": "Great Ball",
+      "ultra": "Ultra Ball",
+      "master": "Master Ball"
+    }
+  },
+  "shop": {
+    "title": "Poké Mart",
+    "subtitle": "Trade credits for balls. The better the ball, the better the odds.",
+    "quantityOf": "Quantity of {{ball}}",
+    "decrease": "Decrease quantity",
+    "increase": "Increase quantity",
+    "buyTotal": "Buy · {{amount}}",
+    "cannotAfford": "Not enough credits",
+    "bought": "Bought {{count}} × {{ball}}."
   },
   "stats": {
     "hp": "HP",

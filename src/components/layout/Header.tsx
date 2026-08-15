@@ -23,6 +23,7 @@ import type { Theme } from '../../themes/ThemeContext'
 // Components
 import { PokeballMark } from '../brand/PokeballMark'
 import { THEME_POKEBALL } from '../brand/PokeballPalettes'
+import { WalletChip } from '../economy/WalletChip'
 import { BackendSwitcher } from './BackendSwitcher'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { Button } from '../ui/Button'
@@ -92,11 +93,22 @@ export function Header(): JSX.Element {
             <NavLink to="/collection" className={navLinkClassName}>
               {t('nav.collection')}
             </NavLink>
+            {/* Economy links are authenticated-only: both routes sit behind RequireAuth, so showing
+                them to a visitor would advertise a page that can only bounce them to /login. */}
+            {user && (
+              <NavLink to="/shop" className={navLinkClassName}>
+                {t('nav.shop')}
+              </NavLink>
+            )}
           </nav>
         </div>
         {/* ml-auto (not parent justify-between) keeps the controls right-aligned even when flex-wrap
             drops them onto their own line. */}
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          {/* Leads the controls cluster: it is account state like the email and the logout button
+              beside it, and it wraps with them rather than pushing the nav around. Mounted only
+              when signed in — /api/economy/wallet is a 401 for everyone else. */}
+          {user && <WalletChip />}
           <BackendSwitcher />
           <LanguageSwitcher />
           <Select value={theme} onValueChange={(value): void => { if (isTheme(value)) setTheme(value) }}>

@@ -22,6 +22,7 @@ import { DetailPage } from './pages/DetailPage'
 import { LoginPage } from './pages/LoginPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { ShopPage } from './pages/ShopPage'
 
 /**
  * Silent session restore on app boot. No stored refresh token → render immediately
@@ -72,6 +73,14 @@ function App(): JSX.Element {
                 element={
                   <RequireAuth>
                     <CollectionPage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/shop"
+                element={
+                  <RequireAuth>
+                    <ShopPage />
                   </RequireAuth>
                 }
               />
