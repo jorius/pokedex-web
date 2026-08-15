@@ -13,6 +13,7 @@ import { Header } from './components/layout/Header'
 
 // Store
 import { useRefreshSessionMutation } from './store/Api'
+import { useAppSelector } from './store/Hooks'
 import { getRefreshToken } from './store/RefreshTokenStorage'
 
 // Pages
@@ -26,17 +27,28 @@ import { ShopPage } from './pages/ShopPage'
 import { SlotsPage } from './pages/SlotsPage'
 
 /**
- * Silent session restore on app boot. No stored refresh token → render immediately
- * (anonymous, zero flash). Token present → fire ONE /api/auth/refresh and hold the routes
- * behind a minimal full-page loader until it settles: success establishes the session via
- * the mutation's onQueryStarted, failure simply renders anonymous (the token was stale).
+ * Session restore on app boot, cheapest path first:
+ *
+ *   1. A still-valid stored access token means the auth slice has ALREADY hydrated the session
+ *      from it (see AccessTokenStorage) — render immediately, and crucially do NOT refresh.
+ *      Refresh tokens rotate, so refreshing on every boot made rapid reloads race the rotation
+ *      and get the whole token family revoked as suspected reuse.
+ *   2. No usable access token but a stored refresh token → fire ONE /api/auth/refresh and hold
+ *      the routes behind a minimal full-page loader until it settles: success establishes the
+ *      session via the mutation's onQueryStarted, failure simply renders anonymous.
+ *   3. Neither → render immediately, anonymous, zero flash.
+ *
+ * Mid-session expiry is unaffected: a 401 still triggers the single-flight refresh-and-retry in
+ * Api.ts, which is exactly when spending a refresh token is the right move.
  */
 function SessionBootstrap({ children }: { children: ReactNode }): JSX.Element {
   const { t } = useTranslation()
   const [refreshSession] = useRefreshSessionMutation()
   // Ref (not state) so StrictMode's simulated remount cannot fire the refresh twice.
   const attemptedRef = useRef(false)
-  const [isRestoring, setIsRestoring] = useState<boolean>(() => getRefreshToken() !== null)
+  // Read once, at mount: whether the slice restored a session from the persisted access token.
+  const hasRestoredSession = useAppSelector((state) => state.auth.accessToken !== null)
+  const [isRestoring, setIsRestoring] = useState<boolean>(() => !hasRestoredSession && getRefreshToken() !== null)
 
   useEffect(() => {
     if (!isRestoring || attemptedRef.current) return

@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 
 // Store
+import { clearAccessToken, getRestorableSession, setAccessToken } from './AccessTokenStorage'
 import { clearRefreshToken, setRefreshToken } from './RefreshTokenStorage'
 import type { AuthSession, AuthUser } from './Types'
 
@@ -11,9 +12,17 @@ export interface AuthState {
   accessToken: string | null
 }
 
+/**
+ * Boot straight into the persisted session when the stored access token is still valid, so a
+ * reload costs no /api/auth/refresh at all. See AccessTokenStorage for why that matters against
+ * rotating refresh tokens. Falls back to a null session, which is SessionBootstrap's cue to try
+ * the silent refresh instead.
+ */
+const restored = getRestorableSession()
+
 const initialState: AuthState = {
-  user: null,
-  accessToken: null,
+  user: restored?.user ?? null,
+  accessToken: restored?.accessToken ?? null,
 }
 
 /**
@@ -34,11 +43,13 @@ const authSlice = createSlice({
     sessionEstablished(state, action: PayloadAction<AuthSession>): void {
       state.user = action.payload.user
       state.accessToken = action.payload.accessToken
+      setAccessToken(action.payload.accessToken)
       setRefreshToken(action.payload.refreshToken)
     },
     sessionCleared(state): void {
       state.user = null
       state.accessToken = null
+      clearAccessToken()
       clearRefreshToken()
     },
   },
