@@ -365,15 +365,18 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
           <CaptureAnimation phase={capture.phase} variant={thrownBall} />
         </div>
 
-        {/* Name plate riding the top of the artwork, with the entry number outside its right edge. */}
+        {/* Name plate riding the top of the artwork: the dex number shares the plate with the name,
+            pinned right, so the two read as one label the way a real dex entry does. */}
         <div className="absolute inset-x-0 top-0 flex flex-col gap-2 p-3">
-          <div className="flex items-start gap-2">
-            <div className={NAME_PLATE_CLASS}>
-              <h1 className="truncate font-display text-2xl font-bold capitalize leading-tight tracking-wide sm:text-3xl">{humanizeSlug(detail.name)}</h1>
+          <div className={NAME_PLATE_CLASS}>
+            <div className="flex items-baseline gap-3">
+              <h1 className="min-w-0 flex-1 truncate font-display text-2xl font-bold capitalize leading-tight tracking-wide sm:text-3xl">
+                {humanizeSlug(detail.name)}
+              </h1>
+              <span aria-hidden className="shrink-0 font-display text-lg tabular-nums text-muted-foreground sm:text-xl">
+                {formatPokedexNumber(detail.pokeApiId)}
+              </span>
             </div>
-            <span aria-hidden className="shrink-0 pt-2 font-display text-lg tabular-nums text-muted-foreground sm:text-xl">
-              {formatPokedexNumber(detail.pokeApiId)}
-            </span>
           </div>
           {capturedAt !== undefined && <CapturedBadge capturedAt={capturedAt} />}
         </div>
