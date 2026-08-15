@@ -21,6 +21,7 @@ import type { PageSize } from '../store/UiSlice'
 // Components
 import { PaginationControls } from '../components/pokemon/PaginationControls'
 import { PokemonCard } from '../components/pokemon/PokemonCard'
+import { PokemonSearch } from '../components/search/PokemonSearch'
 import { Button } from '../components/ui/Button'
 import { Card, CardContent } from '../components/ui/Card'
 import { Skeleton } from '../components/ui/Skeleton'
@@ -128,7 +129,10 @@ export function BrowsePage(): JSX.Element {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-3xl font-bold tracking-wide">{t('browse.title')}</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="font-display text-3xl font-bold tracking-wide">{t('browse.title')}</h1>
+        <PokemonSearch />
+      </div>
       {renderContent()}
       {!error && data !== undefined && data.items.length > 0 && (
         <PaginationControls
