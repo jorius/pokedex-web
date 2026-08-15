@@ -200,7 +200,22 @@ cp .env.example .env   # optional — the app works with no .env at all
 
 | Variable | Default | Required | Notes |
 |---|---|---|---|
-| `VITE_API_BASE_URL` | — (falls back to the `dotnet` target, `http://localhost:5257`) | No | Initial backend; must be one of the three known base URLs to match a switcher target. A persisted switcher choice **overrides** it on subsequent visits |
+| `VITE_API_BASE_URL` | — (falls back to the `dotnet` target, port 5257) | No | Picks the **initial backend**. Only its **port** is read (5257 / 3000 / 3001) — see the host note below |
+
+**Backend host is derived, not configured.** The three base URLs are built at runtime from
+`window.location.hostname` plus each backend's fixed port, so the same bundle targets
+`localhost:5257|3000|3001` when opened at `http://localhost:5173` and
+`192.168.0.254:5257|3000|3001` when opened at `http://192.168.0.254:5173` from a phone. A
+`localhost` value in `VITE_API_BASE_URL` therefore cannot pin requests to localhost — the
+port is all that is taken from it.
+
+**Precedence for the initial backend** (highest first):
+
+1. Persisted switcher choice — `localStorage` key `pokedex.apiTarget`, holding a **target key**
+   (`dotnet` | `expressJs` | `expressTs`). A value written by an older build as an absolute URL
+   is migrated to its target key by port on first load; anything unrecognizable is discarded.
+2. `VITE_API_BASE_URL`, matched by port.
+3. The `dotnet` target (port 5257).
 
 **CORS note:** nothing to configure here — all three backends ship a permissive CORS policy for browser clients by design (Bearer-token auth, no cookies, so `AllowAnyOrigin` cannot leak session state).
 
@@ -221,6 +236,60 @@ Open **http://localhost:5173** with at least one backend running (e.g. `dotnet r
 | `npm run preview` | Serve the production build locally |
 | `npm run lint` | ESLint (flat config: TS + React + hooks + react-refresh) |
 | `npm run typecheck` | `tsc -b --noEmit` |
+
+## Testing from a phone on your LAN
+
+The whole ecosystem is already LAN-ready: Vite binds every interface (`server.host` in
+[`vite.config.ts`](vite.config.ts)), the .NET profile binds `0.0.0.0` (`applicationUrl` in the
+sibling repo's `launchSettings.json`), Node's `listen` defaults to every interface, and the
+frontend derives its backend host from the page's own host. Nothing needs a rebuild or a
+different `.env` — the phone just needs the machine's LAN address.
+
+**One command, from this repo's root:**
+
+```powershell
+.\scripts\start-lan.ps1
+```
+
+It opens one window per service (.NET 5257, Express JS 3000, Express TS 3001, Vite 5173),
+auto-detects the LAN IPv4 address and prints the URL to type into the phone. Pass
+`-HostIp 192.168.0.254` to pin the address, or `-SkipDotnet` / `-SkipExpressJs` /
+`-SkipExpressTs` / `-SkipWeb` when something is already running.
+
+**Or start them by hand** (four terminals, one each):
+
+```powershell
+cd ..\pokedex-api-dotnet     ; dotnet run --project src/PokedexApi.Api --launch-profile http
+cd ..\pokedex-api-express-js ; npm run dev
+cd ..\pokedex-api-express-ts ; npm run dev
+npm run dev
+```
+
+Then open **`http://<your-lan-ip>:5173`** on the phone — same Wi-Fi network, no VPN.
+`ipconfig` (or the script's output) gives the address.
+
+**Windows Firewall.** Inbound connections from the phone are blocked unless a rule allows
+them. Node already has a blanket inbound allow rule on most dev machines; the .NET backend
+usually does not. In an **elevated** PowerShell:
+
+```powershell
+New-NetFirewallRule -DisplayName 'Pokedex dev (LAN)' -Direction Inbound -Protocol TCP `
+  -LocalPort 5173,5257,3000,3001 -Action Allow -Profile Private -RemoteAddress LocalSubnet
+```
+
+The rule is `Private`-profile only, so it does nothing on public Wi-Fi. That also means the
+home network must be classified **Private** — check with `Get-NetConnectionProfile`, and fix
+it in the same elevated shell if it says `Public`:
+
+```powershell
+Set-NetConnectionProfile -InterfaceAlias 'Ethernet 2' -NetworkCategory Private
+```
+
+| Symptom on the phone | Cause |
+|---|---|
+| Page never loads | Firewall (rule above), phone on a different network/VPN, or wrong IP |
+| Page loads, grid is empty, console shows failed requests to `http://<lan-ip>:5257` | The .NET backend is bound to loopback — its `applicationUrl` must be `http://0.0.0.0:5257`, not `http://localhost:5257` |
+| Page loads but calls still go to `localhost` | Stale bundle; hard-reload the phone browser |
 
 ## Session handling (what to expect as a user)
 
@@ -245,6 +314,7 @@ all of which pass clean, plus live browser verification of every page against al
 | Symptom | Explanation |
 |---|---|
 | Wrong/unexpected backend after changing `.env` | A previously persisted switcher choice (`localStorage` `pokedex.apiTarget`) overrides `VITE_API_BASE_URL`. Switch via the header dropdown or clear the key |
+| Reviewing from a phone doesn't work | See [Testing from a phone on your LAN](#testing-from-a-phone-on-your-lan) — usually Windows Firewall or a `Public` network profile |
 | Everything 401s / instant logouts (especially right after switching to the .NET target) | The backends must share the **same** JWT signing key, issuer and audience — if they diverge, tokens minted by one are rejected by another and the reauth loop logs you out. The most common cause is the .NET backend's `dotnet user-secrets` signing key drifting from the Node services' `JWT_SECRET`; realign it and restart. Also check the target backend can reach the shared PostgreSQL |
 | Fonts look different offline | The display fonts (Atkinson Hyperlegible, Pixelify Sans) load from Google Fonts in `index.html`; offline, the browser falls back to system fonts. Cosmetic only |
 | Upgrading ESLint to 10 breaks `npm run lint` | Deliberate pin: `eslint-plugin-react` declares peer support only up to ESLint `^9.7`, so this repo stays on ESLint 9 until the plugin catches up |
