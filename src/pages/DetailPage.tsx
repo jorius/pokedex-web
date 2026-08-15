@@ -26,7 +26,25 @@ import { Button } from '../components/ui/Button'
 import { Card, CardContent } from '../components/ui/Card'
 import { Skeleton } from '../components/ui/Skeleton'
 
-const TWO_COLUMN_CLASS = 'grid items-start gap-8 lg:grid-cols-[2fr_3fr]'
+/**
+ * The page is a two-column grid with THREE cells, placed explicitly on lg so the source order can
+ * stay the mobile reading order (artwork+name+action -> types/meta/abilities/stats/evolution ->
+ * description) while the desktop layout puts the dossier column beside the artwork and drops the
+ * description underneath the artwork, matching its width. Row gap is wider than the column gap:
+ * the action button hangs off the artwork card's bottom edge and needs the clearance.
+ */
+const DETAIL_GRID_CLASS = 'grid items-start gap-x-8 gap-y-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'
+
+const ARTWORK_CELL_CLASS = 'relative lg:col-start-1 lg:row-start-1'
+
+const DOSSIER_CELL_CLASS = 'flex flex-col gap-7 lg:col-start-2 lg:row-span-2 lg:row-start-1'
+
+const DESCRIPTION_CELL_CLASS = 'p-5 lg:col-start-1 lg:row-start-2'
+
+/** The sprite well is padded top-heavy so the name plate overlays empty space, not the creature. */
+const ARTWORK_WELL_CLASS = 'flex aspect-square items-center justify-center overflow-hidden rounded-[calc(var(--radius)-1px)] bg-muted px-6 pb-12 pt-20'
+
+const NAME_PLATE_CLASS = 'min-w-0 flex-1 rounded-md border bg-card/90 px-3 py-2 shadow-sm backdrop-blur-sm'
 
 interface SectionProps {
   title: string
@@ -62,18 +80,21 @@ function Fact({ label, value }: FactProps): JSX.Element {
 
 function DetailSkeleton(): JSX.Element {
   return (
-    <div className={TWO_COLUMN_CLASS} aria-hidden>
-      <Skeleton className="aspect-square w-full rounded-lg" />
-      <div className="flex flex-col gap-6">
-        <Skeleton className="h-10 w-2/3" />
-        <Skeleton className="h-6 w-1/3" />
-        <Skeleton className="h-9 w-44" />
+    <div className={DETAIL_GRID_CLASS} aria-hidden>
+      <div className={ARTWORK_CELL_CLASS}>
+        <Skeleton className="aspect-square w-full rounded-lg" />
+      </div>
+      <div className={DOSSIER_CELL_CLASS}>
+        <Skeleton className="h-7 w-40" />
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-7 w-32" />
         <div className="flex flex-col gap-3">
           {['hp', 'atk', 'def', 'spa', 'spd', 'spe'].map((key) => (
             <Skeleton key={key} className="h-4 w-full" />
           ))}
         </div>
       </div>
+      <Skeleton className="h-24 w-full rounded-lg lg:col-start-1 lg:row-start-2" />
     </div>
   )
 }
@@ -107,54 +128,53 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
   }
 
   return (
-    <div className={TWO_COLUMN_CLASS}>
-      <Card className="overflow-hidden">
-        <div className="relative flex aspect-square items-center justify-center bg-muted p-8">
-          <span aria-hidden className="absolute right-4 top-3 font-display text-2xl text-muted-foreground/70">
-            {formatPokedexNumber(detail.pokeApiId)}
-          </span>
+    <div className={DETAIL_GRID_CLASS}>
+      <Card className={ARTWORK_CELL_CLASS}>
+        <div className={ARTWORK_WELL_CLASS}>
           {detail.spriteUrl !== null ? (
             <img src={detail.spriteUrl} alt={detail.name} className="size-full object-contain [image-rendering:pixelated] drop-shadow-lg" />
           ) : (
             <span aria-hidden className="font-display text-8xl text-muted-foreground/50">?</span>
           )}
         </div>
-      </Card>
 
-      <div className="flex flex-col gap-7">
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="font-display text-4xl font-bold capitalize tracking-wide">{humanizeSlug(detail.name)}</h1>
-            <Badge variant="outline" className="font-display text-sm">{formatPokedexNumber(detail.pokeApiId)}</Badge>
-          </div>
-          {detail.types.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {detail.types.map((type) => (
-                <Badge key={type} className="capitalize">{humanizeSlug(type)}</Badge>
-              ))}
+        {/* Name plate riding the top of the artwork, with the entry number outside its right edge. */}
+        <div className="absolute inset-x-0 top-0 flex flex-col gap-2 p-3">
+          <div className="flex items-start gap-2">
+            <div className={NAME_PLATE_CLASS}>
+              <h1 className="truncate font-display text-2xl font-bold capitalize leading-tight tracking-wide sm:text-3xl">{humanizeSlug(detail.name)}</h1>
             </div>
-          )}
+            <span aria-hidden className="shrink-0 pt-2 font-display text-lg tabular-nums text-muted-foreground sm:text-xl">
+              {formatPokedexNumber(detail.pokeApiId)}
+            </span>
+          </div>
         </div>
 
-        <dl className="m-0 flex flex-wrap gap-x-10 gap-y-3">
+        {/* The action straddles the card's bottom edge — the one control the page is really about. */}
+        <div className="absolute inset-x-0 bottom-0 flex translate-y-1/2 justify-center px-4">
+          <Button size="lg" className="shadow-lg" disabled={isSyncing} onClick={handleSync}>
+            <RefreshCw aria-hidden className={isSyncing ? 'animate-spin' : undefined} />
+            {t('detail.sync')}
+          </Button>
+        </div>
+      </Card>
+
+      <div className={DOSSIER_CELL_CLASS}>
+        {detail.types.length > 0 && (
+          <Section title={t('detail.types')}>
+            <div className="flex flex-wrap gap-2">
+              {detail.types.map((type) => (
+                <Badge key={type} className="px-3 py-1 text-sm capitalize">{humanizeSlug(type)}</Badge>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        <dl className="m-0 flex flex-wrap gap-x-10 gap-y-3 rounded-md border bg-muted/40 px-4 py-3">
           {detail.category !== null && <Fact label={t('browse.category')} value={detail.category} />}
           <Fact label={t('detail.height')} value={t('detail.heightValue', { value: formatTenths(detail.height) })} />
           <Fact label={t('detail.weight')} value={t('browse.weightValue', { value: formatTenths(detail.weight) })} />
         </dl>
-
-        <div className="flex flex-col gap-2">
-          <Button className="self-start" disabled={isSyncing} onClick={handleSync}>
-            <RefreshCw aria-hidden className={isSyncing ? 'animate-spin' : undefined} />
-            {t('detail.sync')}
-          </Button>
-          {!isAuthenticated && <p className="text-sm text-muted-foreground">{t('detail.loginToSync')}</p>}
-        </div>
-
-        {detail.description !== null && (
-          <Section title={t('detail.description')}>
-            <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">{detail.description}</p>
-          </Section>
-        )}
 
         {detail.abilities.length > 0 && (
           <Section title={t('detail.abilities')}>
@@ -180,10 +200,23 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
 
         {detail.evolutionChain.length > 1 && (
           <Section title={t('detail.evolutionChain')}>
-            <EvolutionChain chain={detail.evolutionChain} currentName={detail.name} />
+            <EvolutionChain
+              chain={detail.evolutionChain}
+              currentName={detail.name}
+              currentPokeApiId={detail.pokeApiId}
+              currentSpriteUrl={detail.spriteUrl}
+            />
           </Section>
         )}
       </div>
+
+      {detail.description !== null && (
+        <Card className={DESCRIPTION_CELL_CLASS}>
+          <Section title={t('detail.description')}>
+            <p className="text-sm leading-relaxed text-muted-foreground">{detail.description}</p>
+          </Section>
+        </Card>
+      )}
     </div>
   )
 }
