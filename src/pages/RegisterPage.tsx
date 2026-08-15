@@ -5,6 +5,9 @@ import type { FormEvent, JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 
+// Hooks
+import { useToast } from '../hooks/UseToast'
+
 // Store
 import { useRegisterMutation } from '../store/Api'
 import type { ApiErrorShape } from '../store/Api'
@@ -22,13 +25,13 @@ import { MIN_PASSWORD_LENGTH, isValidEmail, isValidPassword } from '../lib/Valid
 export function RegisterPage(): JSX.Element {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const [register, { isLoading }] = useRegisterMutation()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [emailError, setEmailError] = useState<string | null>(null)
   const [passwordError, setPasswordError] = useState<string | null>(null)
-  const [serverError, setServerError] = useState<string | null>(null)
 
   function validate(): boolean {
     const nextEmailError = isValidEmail(email) ? null : t('auth.localValidation.emailInvalid')
@@ -38,16 +41,17 @@ export function RegisterPage(): JSX.Element {
     return nextEmailError === null && nextPasswordError === null
   }
 
+  // Field validation stays inline (it points AT the field it is about); anything the server says
+  // is a transient event and goes to the toast layer.
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault()
-    setServerError(null)
     if (!validate()) return
 
     try {
       await register({ email, password }).unwrap()
       navigate('/', { replace: true })
     } catch (error) {
-      setServerError(resolveApiErrorMessage(error as ApiErrorShape, t))
+      showToast({ message: resolveApiErrorMessage(error as ApiErrorShape, t), variant: 'error' })
     }
   }
 
@@ -93,11 +97,6 @@ export function RegisterPage(): JSX.Element {
                 </p>
               )}
             </div>
-            {serverError !== null && (
-              <p id="register-server-error" role="alert" className="text-sm text-destructive">
-                {serverError}
-              </p>
-            )}
             <Button type="submit" disabled={isLoading} className="mt-2">
               {isLoading && <Loader2 className="animate-spin" aria-hidden />}
               {t('auth.registerCta')}

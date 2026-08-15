@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router'
 
 // Hooks
 import { useDocumentTitle } from '../hooks/UseDocumentTitle'
+import { useToast } from '../hooks/UseToast'
 
 // Lib
 import { cn } from '../lib/Cn'
@@ -51,6 +52,7 @@ function SkeletonCard(): JSX.Element {
 export function BrowsePage(): JSX.Element {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const { showToast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const pageSize = useAppSelector((state) => state.ui.pageSize)
   const page = parsePageParam(searchParams.get('page'))
@@ -69,6 +71,14 @@ export function BrowsePage(): JSX.Element {
     setSearchParams({})
   }
 
+  // A failed page load stays an inline page state (there is no grid to show), but a failed RETRY
+  // is a transient event on a page the user is already looking at — that one toasts.
+  function handleRetry(): void {
+    void refetch()
+      .unwrap()
+      .catch((retryError: unknown) => { showToast({ message: resolveApiErrorMessage(retryError as ApiErrorShape, t), variant: 'error' }) })
+  }
+
   function renderContent(): JSX.Element {
     if (error) {
       return (
@@ -77,7 +87,7 @@ export function BrowsePage(): JSX.Element {
             <p role="alert" className="text-sm text-muted-foreground">
               {resolveApiErrorMessage(error as ApiErrorShape, t)}
             </p>
-            <Button variant="outline" onClick={(): void => { void refetch() }}>
+            <Button variant="outline" onClick={handleRetry}>
               {t('common.retry')}
             </Button>
           </CardContent>

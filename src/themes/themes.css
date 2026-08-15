@@ -15,6 +15,14 @@
  *   lighter red, white button text would fail (2.77:1), so destructive-foreground is
  *   near-black #0C0C0E (7.06:1 on #F87171).
  *
+ * --success / --info (added with the toast system, B3) are the one deliberate extension to the
+ * original 18-token contract. Status colour cannot be borrowed from the decorative palette: with
+ * success = --primary, firered's red primary made "saved" and "failed" the same colour, and with
+ * info = --accent, bw-light's Reshiram blue and firered's amber both read as anything but
+ * "information". So each theme names its own green and blue, tinted to fit (cool and deep on the
+ * light themes, light on bw-dark where a mid-tone green would fail against near-black). Every
+ * pair clears AA; firered's success #1F7A45 with white is the tightest at 5.35:1.
+ *
  * --overlay is the dialog scrim: a foreground-tinted near-black at 60% for light themes,
  * deeper on bw-dark so the scrim still reads against OLED-black surfaces.
  */
@@ -38,6 +46,10 @@
   --ring: #0fa36b;
   --destructive: #b3402a;
   --destructive-foreground: #ffffff;
+  --success: #1e7a48;
+  --success-foreground: #ffffff;
+  --info: #26648f;
+  --info-foreground: #ffffff;
   --overlay: rgb(23 36 31 / 0.6);
   --radius: 0.5rem;
   color-scheme: light;
@@ -62,6 +74,10 @@
   --ring: #0fa36b;
   --destructive: #b3402a;
   --destructive-foreground: #ffffff;
+  --success: #1e7a48;
+  --success-foreground: #ffffff;
+  --info: #26648f;
+  --info-foreground: #ffffff;
   --overlay: rgb(23 36 31 / 0.6);
   --radius: 0.5rem;
   color-scheme: light;
@@ -86,6 +102,10 @@
   --ring: #e3350d;
   --destructive: #b91c1c;
   --destructive-foreground: #ffffff;
+  --success: #1f7a45;
+  --success-foreground: #ffffff;
+  --info: #1f66a3;
+  --info-foreground: #ffffff;
   --overlay: rgb(43 33 28 / 0.6);
   --radius: 0.75rem;
   color-scheme: light;
@@ -110,6 +130,10 @@
   --ring: #3b82f6;
   --destructive: #b91c1c;
   --destructive-foreground: #ffffff;
+  --success: #157347;
+  --success-foreground: #ffffff;
+  --info: #1d4ed8;
+  --info-foreground: #ffffff;
   --overlay: rgb(17 17 17 / 0.6);
   --radius: 0.25rem;
   color-scheme: light;
@@ -134,7 +158,12 @@
   --ring: #22d3ee;
   --destructive: #f87171;
   --destructive-foreground: #0c0c0e;
+  --success: #4ade80;
+  --success-foreground: #0c0c0e;
+  --info: #38bdf8;
+  --info-foreground: #0c0c0e;
   --overlay: rgb(0 0 0 / 0.72);
   --radius: 0.25rem;
   color-scheme: dark;
 }
+

@@ -10,6 +10,7 @@
     "close": "Cerrar",
     "back": "Volver",
     "confirm": "Confirmar",
+    "dismiss": "Descartar",
     "error": {
       "generic": "Ocurrió un error. Por favor, inténtalo de nuevo.",
       "network": "No se pudo conectar con el servidor. Revisa tu conexión e inténtalo de nuevo."
@@ -19,6 +20,9 @@
       "description": "La página que buscas no existe o fue movida.",
       "cta": "Volver a Explorar"
     }
+  },
+  "toast": {
+    "regionLabel": "Notificaciones"
   },
   "nav": {
     "browse": "Explorar",

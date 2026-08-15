@@ -4,6 +4,9 @@ import { useState } from 'react'
 import type { FormEvent, JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 
+// Hooks
+import { useToast } from '../../hooks/UseToast'
+
 // Lib
 import { resolveApiErrorMessage } from '../../lib/ApiErrorMessage'
 import { humanizeSlug } from '../../lib/Format'
@@ -60,7 +63,8 @@ function buildDiff(original: FieldState, next: FieldState): UpdatePokemonPayload
 
 export function EditLocalDialog({ record, open, onOpenChange, onUpdated }: EditLocalDialogProps): JSX.Element {
   const { t } = useTranslation()
-  const [updateLocal, { isLoading, error }] = useUpdateLocalMutation()
+  const { showToast } = useToast()
+  const [updateLocal, { isLoading }] = useUpdateLocalMutation()
   const original = toFieldState(record)
   const [fields, setFields] = useState<FieldState>(original)
 
@@ -77,8 +81,10 @@ export function EditLocalDialog({ record, open, onOpenChange, onUpdated }: EditL
     try {
       await updateLocal({ id: record.id, payload: diff }).unwrap()
       onUpdated()
-    } catch {
-      // Error state is surfaced via the mutation's `error` below.
+    } catch (error) {
+      // The dialog stays open on failure (the user's edits are still in the fields); the reason
+      // why goes to the toast layer, which portals above the dialog.
+      showToast({ message: resolveApiErrorMessage(error as ApiErrorShape, t), variant: 'error' })
     }
   }
 
@@ -142,12 +148,6 @@ export function EditLocalDialog({ record, open, onOpenChange, onUpdated }: EditL
               {t('collection.fieldMax', { count: fields.description.length, max: FIELD_MAX_LENGTH })}
             </p>
           </div>
-
-          {error !== undefined && (
-            <p role="alert" className="text-sm text-destructive">
-              {resolveApiErrorMessage(error as ApiErrorShape, t)}
-            </p>
-          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={(): void => onOpenChange(false)}>

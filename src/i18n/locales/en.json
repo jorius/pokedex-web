@@ -10,6 +10,7 @@
     "close": "Close",
     "back": "Back",
     "confirm": "Confirm",
+    "dismiss": "Dismiss",
     "error": {
       "generic": "Something went wrong. Please try again.",
       "network": "Unable to reach the server. Check your connection and try again."
@@ -19,6 +20,9 @@
       "description": "The page you're looking for doesn't exist or has moved.",
       "cta": "Back to Browse"
     }
+  },
+  "toast": {
+    "regionLabel": "Notifications"
   },
   "nav": {
     "browse": "Browse",

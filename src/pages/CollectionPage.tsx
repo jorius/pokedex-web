@@ -1,11 +1,12 @@
 // External
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router'
 
 // Hooks
 import { useDocumentTitle } from '../hooks/UseDocumentTitle'
+import { useToast } from '../hooks/UseToast'
 
 // Lib
 import { resolveApiErrorMessage } from '../lib/ApiErrorMessage'
@@ -27,10 +28,6 @@ import { PaginationControls } from '../components/pokemon/PaginationControls'
 import { Button } from '../components/ui/Button'
 import { Card, CardContent } from '../components/ui/Card'
 import { Skeleton } from '../components/ui/Skeleton'
-
-const NOTE_DISMISS_MS = 4000
-
-type StatusNote = 'updated' | 'deleted'
 
 /** `?page=` is user-editable — anything that isn't a positive integer falls back to page 1. */
 function parsePageParam(raw: string | null): number {
@@ -54,6 +51,7 @@ function SkeletonRow(): JSX.Element {
 export function CollectionPage(): JSX.Element {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const { showToast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const pageSize = useAppSelector((state) => state.ui.pageSize)
   const page = parsePageParam(searchParams.get('page'))
@@ -61,15 +59,8 @@ export function CollectionPage(): JSX.Element {
 
   const [editingRecord, setEditingRecord] = useState<LocalPokemon | null>(null)
   const [deletingRecord, setDeletingRecord] = useState<LocalPokemon | null>(null)
-  const [note, setNote] = useState<StatusNote | null>(null)
 
   useDocumentTitle(`${t('common.appName')} — ${t('collection.title')}`)
-
-  useEffect(() => {
-    if (note === null) return
-    const timeoutId = setTimeout(() => setNote(null), NOTE_DISMISS_MS)
-    return (): void => clearTimeout(timeoutId)
-  }, [note])
 
   function handlePageChange(nextPage: number): void {
     // Page 1 is the default — keep it out of the URL so the route stays canonical.
@@ -84,17 +75,25 @@ export function CollectionPage(): JSX.Element {
 
   function handleUpdated(): void {
     setEditingRecord(null)
-    setNote('updated')
+    showToast({ message: t('collection.updated'), variant: 'success' })
   }
 
   function handleDeleted(): void {
     setDeletingRecord(null)
-    setNote('deleted')
+    showToast({ message: t('collection.deleted'), variant: 'success' })
     // Deleting the last record on a page beyond the first leaves it empty — step back a page
     // instead of showing a dead end.
     if (data !== undefined && data.items.length === 1 && page > 1) {
       handlePageChange(page - 1)
     }
+  }
+
+  // A failed page load stays an inline page state (there is no list to show), but a failed RETRY
+  // is a transient event on a page the user is already looking at — that one toasts.
+  function handleRetry(): void {
+    void refetch()
+      .unwrap()
+      .catch((retryError: unknown) => { showToast({ message: resolveApiErrorMessage(retryError as ApiErrorShape, t), variant: 'error' }) })
   }
 
   function renderContent(): JSX.Element {
@@ -105,7 +104,7 @@ export function CollectionPage(): JSX.Element {
             <p role="alert" className="text-sm text-muted-foreground">
               {resolveApiErrorMessage(error as ApiErrorShape, t)}
             </p>
-            <Button variant="outline" onClick={(): void => { void refetch() }}>
+            <Button variant="outline" onClick={handleRetry}>
               {t('common.retry')}
             </Button>
           </CardContent>
@@ -150,17 +149,6 @@ export function CollectionPage(): JSX.Element {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="font-display text-3xl font-bold tracking-wide">{t('collection.title')}</h1>
-
-      {note === 'updated' && (
-        <p role="status" className="text-sm font-medium text-primary">
-          {t('collection.updated')}
-        </p>
-      )}
-      {note === 'deleted' && (
-        <p role="status" className="text-sm font-medium text-primary">
-          {t('collection.deleted')}
-        </p>
-      )}
 
       {renderContent()}
 

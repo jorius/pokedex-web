@@ -1,12 +1,12 @@
 // External
 import { ArrowLeft, RefreshCw } from 'lucide-react'
-import { useEffect } from 'react'
 import type { JSX, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate, useParams } from 'react-router'
 
 // Hooks
 import { useDocumentTitle } from '../hooks/UseDocumentTitle'
+import { useToast } from '../hooks/UseToast'
 
 // Lib
 import { resolveApiErrorMessage } from '../lib/ApiErrorMessage'
@@ -87,19 +87,23 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
   const navigate = useNavigate()
   const location = useLocation()
   const isAuthenticated = useAppSelector((state) => state.auth.accessToken !== null)
-  const [syncById, { isLoading: isSyncing, isSuccess: isSynced, error: syncError, reset: resetSync }] = useSyncByIdMutation()
+  const { showToast } = useToast()
+  const [syncById, { isLoading: isSyncing }] = useSyncByIdMutation()
 
-  // Evolution-chain navigation swaps the pokemon without unmounting — clear any stale sync note.
-  useEffect(() => {
-    resetSync()
-  }, [detail.pokeApiId, resetSync])
-
+  // The sync outcome is reported by the toast layer, so the mutation's isSuccess/error are no
+  // longer read here — and neither is reset(), which only existed to clear the stale inline note
+  // when the evolution chain swapped the pokemon under a mounted component.
   function handleSync(): void {
     if (!isAuthenticated) {
+      // Being bounced to a login form you did not ask for is disorienting — say why.
+      showToast({ message: t('detail.loginToSync'), variant: 'info' })
       navigate('/login', { state: { from: location } })
       return
     }
     void syncById(detail.pokeApiId)
+      .unwrap()
+      .then(() => { showToast({ message: t('detail.syncSuccess'), variant: 'success' }) })
+      .catch((error: unknown) => { showToast({ message: resolveApiErrorMessage(error as ApiErrorShape, t), variant: 'error' }) })
   }
 
   return (
@@ -144,16 +148,6 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
             {t('detail.sync')}
           </Button>
           {!isAuthenticated && <p className="text-sm text-muted-foreground">{t('detail.loginToSync')}</p>}
-          {isSynced && (
-            <p role="status" className="text-sm font-medium text-primary">
-              {t('detail.syncSuccess')}
-            </p>
-          )}
-          {syncError !== undefined && (
-            <p role="alert" className="text-sm text-destructive">
-              {resolveApiErrorMessage(syncError as ApiErrorShape, t)}
-            </p>
-          )}
         </div>
 
         {detail.description !== null && (
@@ -197,6 +191,7 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
 export function DetailPage(): JSX.Element {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const { idOrName = '' } = useParams<{ idOrName: string }>()
   const isNumericId = /^\d+$/.test(idOrName)
   const byIdResult = useGetPokemonByIdQuery(Number(idOrName), { skip: !isNumericId })
@@ -213,6 +208,14 @@ export function DetailPage(): JSX.Element {
     else navigate('/')
   }
 
+  // A failed page load stays an inline page state (the page has no content to show), but a failed
+  // RETRY is a transient event on a page the user is already looking at — that one toasts.
+  function handleRetry(): void {
+    void refetch()
+      .unwrap()
+      .catch((retryError: unknown) => { showToast({ message: resolveApiErrorMessage(retryError as ApiErrorShape, t), variant: 'error' }) })
+  }
+
   function renderContent(): JSX.Element {
     if (error) {
       const apiError = error as ApiErrorShape
@@ -224,7 +227,7 @@ export function DetailPage(): JSX.Element {
               {isNotFound ? t('detail.notFound') : resolveApiErrorMessage(apiError, t)}
             </p>
             {!isNotFound && (
-              <Button variant="outline" onClick={(): void => { void refetch() }}>
+              <Button variant="outline" onClick={handleRetry}>
                 {t('common.retry')}
               </Button>
             )}

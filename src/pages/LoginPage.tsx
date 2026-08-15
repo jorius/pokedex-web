@@ -6,6 +6,9 @@ import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate } from 'react-router'
 import type { Location } from 'react-router'
 
+// Hooks
+import { useToast } from '../hooks/UseToast'
+
 // Store
 import { useLoginMutation } from '../store/Api'
 import type { ApiErrorShape } from '../store/Api'
@@ -28,13 +31,13 @@ export function LoginPage(): JSX.Element {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
+  const { showToast } = useToast()
   const [login, { isLoading }] = useLoginMutation()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [emailError, setEmailError] = useState<string | null>(null)
   const [passwordError, setPasswordError] = useState<string | null>(null)
-  const [serverError, setServerError] = useState<string | null>(null)
 
   function validate(): boolean {
     const nextEmailError = isValidEmail(email) ? null : t('auth.localValidation.emailInvalid')
@@ -44,9 +47,10 @@ export function LoginPage(): JSX.Element {
     return nextEmailError === null && nextPasswordError === null
   }
 
+  // Field validation stays inline (it points AT the field it is about); anything the server says
+  // is a transient event and goes to the toast layer.
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault()
-    setServerError(null)
     if (!validate()) return
 
     try {
@@ -54,7 +58,7 @@ export function LoginPage(): JSX.Element {
       const redirectState = location.state as RedirectState | null
       navigate(redirectState?.from?.pathname ?? '/', { replace: true })
     } catch (error) {
-      setServerError(resolveApiErrorMessage(error as ApiErrorShape, t))
+      showToast({ message: resolveApiErrorMessage(error as ApiErrorShape, t), variant: 'error' })
     }
   }
 
@@ -100,11 +104,6 @@ export function LoginPage(): JSX.Element {
                 </p>
               )}
             </div>
-            {serverError !== null && (
-              <p id="login-server-error" role="alert" className="text-sm text-destructive">
-                {serverError}
-              </p>
-            )}
             <Button type="submit" disabled={isLoading} className="mt-2">
               {isLoading && <Loader2 className="animate-spin" aria-hidden />}
               {t('auth.loginCta')}

@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 
-// Lib
-import { cn } from '../../lib/Cn'
+// Hooks
+import { useToast } from '../../hooks/UseToast'
 
 // Store
 import { API_TARGETS, isApiTarget, setApiTarget } from '../../store/ApiTargetSlice'
@@ -17,13 +17,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 
 const HEALTH_PROBE_PATH = '/api/pokemons?page=1&pageSize=1'
 const HEALTH_PROBE_TIMEOUT_MS = 3000
-const SWITCHED_DISMISS_MS = 4000
-
-type ProbeState =
-  | { status: 'idle' }
-  | { status: 'checking'; target: ApiTarget }
-  | { status: 'switched'; target: ApiTarget }
-  | { status: 'unreachable'; target: ApiTarget }
 
 /**
  * Header control for the three interchangeable backends. Switching dispatches setApiTarget
@@ -31,31 +24,33 @@ type ProbeState =
  * then fires a lightweight plain-fetch health probe against the new target so the user
  * immediately learns whether it is actually up. Deliberately NOT an RTK Query endpoint:
  * the probe is throwaway UI feedback and must never enter the query cache it just reset.
+ *
+ * The probe RESULT is a transient event, so it toasts (B3) instead of the pill this used to
+ * render. Only the in-flight state stays local, as a spinner in place of the trigger's icon —
+ * a toast that says "checking..." and is immediately replaced by its own outcome is noise.
  */
 export function BackendSwitcher(): JSX.Element {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const { showToast } = useToast()
   const target = useAppSelector((state) => state.apiTarget.target)
-  const [probe, setProbe] = useState<ProbeState>({ status: 'idle' })
+  const [checkingTarget, setCheckingTarget] = useState<ApiTarget | null>(null)
   const controllerRef = useRef<AbortController | null>(null)
-  const dismissTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     return (): void => {
       controllerRef.current?.abort()
       controllerRef.current = null
-      if (dismissTimerRef.current !== null) window.clearTimeout(dismissTimerRef.current)
     }
   }, [])
 
   async function probeTarget(nextTarget: ApiTarget, baseUrl: string): Promise<void> {
     controllerRef.current?.abort()
-    if (dismissTimerRef.current !== null) window.clearTimeout(dismissTimerRef.current)
 
     const controller = new AbortController()
     controllerRef.current = controller
     const timeoutId = window.setTimeout(() => { controller.abort() }, HEALTH_PROBE_TIMEOUT_MS)
-    setProbe({ status: 'checking', target: nextTarget })
+    setCheckingTarget(nextTarget)
 
     let reachable = false
     try {
@@ -70,12 +65,13 @@ export function BackendSwitcher(): JSX.Element {
     // A newer switch (or unmount) superseded this probe — its outcome no longer matters.
     if (controllerRef.current !== controller) return
 
-    if (reachable) {
-      setProbe({ status: 'switched', target: nextTarget })
-      dismissTimerRef.current = window.setTimeout(() => { setProbe({ status: 'idle' }) }, SWITCHED_DISMISS_MS)
-    } else {
-      setProbe({ status: 'unreachable', target: nextTarget })
-    }
+    setCheckingTarget(null)
+    const name = t(`backend.${nextTarget}`)
+    showToast(
+      reachable
+        ? { message: t('backend.switched', { name }), variant: 'success' }
+        : { message: t('backend.unreachable', { name }), variant: 'error' },
+    )
   }
 
   function handleTargetChange(value: string): void {
@@ -86,11 +82,15 @@ export function BackendSwitcher(): JSX.Element {
   }
 
   return (
-    <div className="relative">
+    <div>
       <Select value={target} onValueChange={handleTargetChange}>
         <SelectTrigger aria-label={t('backend.label')} title={t(`backend.${target}`)} className="w-40">
           <span className="flex min-w-0 items-center gap-2">
-            <Server aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+            {checkingTarget !== null ? (
+              <Loader2 aria-hidden className="size-4 shrink-0 animate-spin text-muted-foreground motion-reduce:animate-none" />
+            ) : (
+              <Server aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+            )}
             <SelectValue />
           </span>
         </SelectTrigger>
@@ -102,18 +102,12 @@ export function BackendSwitcher(): JSX.Element {
           ))}
         </SelectContent>
       </Select>
-      {probe.status !== 'idle' && (
-        <span
-          role={probe.status === 'unreachable' ? 'alert' : 'status'}
-          className={cn(
-            'absolute right-0 top-full z-30 mt-2 flex w-max max-w-64 items-center gap-1.5 rounded-md border bg-card px-2.5 py-1.5 text-xs shadow-sm',
-            probe.status === 'unreachable' ? 'text-destructive' : 'text-muted-foreground',
-          )}
-        >
-          {probe.status === 'checking' && <Loader2 className="size-3.5 animate-spin" aria-hidden />}
-          {t(`backend.${probe.status}`, { name: t(`backend.${probe.target}`) })}
-        </span>
-      )}
+      {/* The spinner is decorative; the in-flight state still has to reach a screen reader. The
+          region is always mounted (an empty one) — a live region that appears WITH its text is
+          unreliably announced. */}
+      <span role="status" className="sr-only">
+        {checkingTarget !== null ? t('backend.checking', { name: t(`backend.${checkingTarget}`) }) : ''}
+      </span>
     </div>
   )
 }

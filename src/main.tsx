@@ -15,14 +15,21 @@ import { store } from './store/Store'
 // Themes
 import { ThemeProvider } from './themes/ThemeProvider'
 
+// Components
+import { ToastProvider } from './components/ui/Toast'
+
 // App
 import App from './App.tsx'
 
+// ToastProvider sits inside ThemeProvider (toasts are token-driven, so they must render under the
+// active theme) and outside the router, so a toast raised on one page survives navigation.
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
       <ThemeProvider>
-        <App />
+        <ToastProvider>
+          <App />
+        </ToastProvider>
       </ThemeProvider>
     </Provider>
   </StrictMode>,
