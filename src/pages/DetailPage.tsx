@@ -1,8 +1,9 @@
 // External
-import { ArrowLeft, RefreshCw } from 'lucide-react'
+import { ArrowLeft, RefreshCw, ShoppingCart } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import type { JSX, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useNavigate, useParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 
 // Hooks
 import { useCaptureSequence } from '../hooks/UseCaptureSequence'
@@ -16,14 +17,16 @@ import { cn } from '../lib/Cn'
 import { formatPokedexNumber, formatTenths, humanizeSlug, toDisplayName } from '../lib/Format'
 
 // Store
-import { useGetLocalByPokeApiIdQuery, useGetPokemonByIdQuery, useGetPokemonByNameQuery, useSyncByIdMutation } from '../store/Api'
+import { api, useGetLocalByPokeApiIdQuery, useGetPokemonByIdQuery, useGetPokemonByNameQuery, useSyncByIdMutation } from '../store/Api'
 import type { ApiErrorShape } from '../store/Api'
 import { useAppSelector } from '../store/Hooks'
-import type { PokemonDetail } from '../store/Types'
+import type { BallType, CatchResult, PokemonDetail } from '../store/Types'
 
 // Components
 import { PokeballMark } from '../components/brand/PokeballMark'
 import { THEME_POKEBALL } from '../components/brand/PokeballPalettes'
+import { ballArtVariant, cheapestOwned, findOption, toBallOptions } from '../components/capture/BallOptions'
+import { BallPicker } from '../components/capture/BallPicker'
 import { CaptureAnimation } from '../components/capture/CaptureAnimation'
 import { captureSpriteClassName } from '../components/capture/CaptureSprite'
 import { CapturedBadge } from '../components/capture/CapturedBadge'
@@ -58,6 +61,15 @@ const DESCRIPTION_CELL_CLASS = 'p-5 lg:col-start-1 lg:row-start-2'
 const ARTWORK_WELL_CLASS = 'relative flex aspect-square items-center justify-center overflow-hidden rounded-[calc(var(--radius)-1px)] bg-muted px-6 pb-12 pt-20'
 
 const NAME_PLATE_CLASS = 'min-w-0 flex-1 rounded-md border bg-card/90 px-3 py-2 shadow-sm backdrop-blur-sm'
+
+/**
+ * The belt rides the well's bottom padding — above the action button that straddles the card edge,
+ * below the sprite's own box — so the picker never covers the pokemon it is aimed at.
+ */
+const BALL_PICKER_CELL_CLASS = 'absolute inset-x-0 bottom-8 flex justify-center px-4'
+
+/** Where the picker opens before the wallet answers; it then moves to the cheapest ball owned. */
+const STARTER_BALL: BallType = 'poke'
 
 interface SectionProps {
   title: string
@@ -129,18 +141,56 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
   // endpoint provides the 'Local' tag, so a successful catch flips it without a manual refetch.
   const { data: capturedEntry } = useGetLocalByPokeApiIdQuery(detail.pokeApiId, { skip: !isAuthenticated })
 
-  /** A broken-out pokemon is a story beat: prefer the server's account of it, fall back to flavor. */
-  function resolveCatchFailureMessage(error: unknown): string {
+  // The wallet IS the belt's counter: every throw invalidates the 'Wallet' tag, so the counts here
+  // redraw themselves the moment a ball is spent — nothing is tracked locally. Both hooks are read
+  // off the api object because Api.ts's named-export block covers the pokemon endpoints only and
+  // that file belongs to a concurrent change; these are the very hooks it would export.
+  const { data: wallet, refetch: refetchWallet } = api.useGetWalletQuery(undefined, { skip: !isAuthenticated })
+  const { data: catalogue } = api.useGetCatalogueQuery(undefined, { skip: !isAuthenticated })
+
+  const ballOptions = useMemo(() => toBallOptions(wallet, catalogue), [wallet, catalogue])
+  // Only an EXPLICIT pick is stored; what is actually on deck is derived below. That way the belt
+  // needs no effect to follow the wallet — it simply falls back to the cheapest ball with stock
+  // whenever the picked type is unset (first render, before the wallet answers) or has run dry.
+  const [pickedBall, setPickedBall] = useState<BallType | null>(null)
+  // The ball a throw left the hand with, frozen for as long as that throw is on screen — see below.
+  const [ballInFlight, setBallInFlight] = useState<BallType | null>(null)
+  // What the SERVER said the odds were, per ball, for THIS pokemon. The catalogue rate is only the
+  // ball's own number — a per-pokemon rarity multiplier is applied on top of it, server-side — so
+  // the first throw with a ball replaces the estimate with the real figure. See BallPicker.
+  const [serverChances, setServerChances] = useState<Partial<Record<BallType, number>>>({})
+
+  const pickedOption = pickedBall === null ? undefined : findOption(ballOptions, pickedBall)
+  const cheapestOption = cheapestOwned(ballOptions)
+  const readyOption = pickedOption !== undefined && pickedOption.quantity > 0 ? pickedOption : cheapestOption
+  /** The ball the NEXT throw will spend. */
+  const readyBall = readyOption?.type ?? pickedBall ?? STARTER_BALL
+  const hasBallToThrow = cheapestOption !== undefined
+  const themeBall = THEME_POKEBALL[theme]
+
+  function rememberChance(result: CatchResult): void {
+    setServerChances((previous) => ({ ...previous, [result.ballType]: result.chance }))
+  }
+
+  /** A REJECTED throw — the request never produced a roll. An escape is not this. */
+  function reportThrowError(error: unknown): void {
     const apiError = error as ApiErrorShape
-    if (typeof apiError.status === 'string') return t('common.error.network')
-    return apiError.msg ?? t('detail.catchFailed')
+    showToast({ message: resolveApiErrorMessage(apiError, t), variant: 'error' })
+    // 409 ("No Poké Ball left") fulfils nothing, so the mutation's tag invalidation never runs and
+    // the belt would keep advertising stock the server just refused. Ask the wallet again.
+    if (apiError.status === 409) void refetchWallet()
   }
 
   const capture = useCaptureSequence({
-    // TODO(C6): the ball comes from the picker once it lands; the default keeps parity with the API.
-    onCapture: () => syncById({ id: detail.pokeApiId, ballType: 'poke' }).unwrap(),
-    onSuccess: () => { showToast({ message: t('detail.catchSuccess', { name: toDisplayName(detail.name) }), variant: 'success' }) },
-    onFailure: (error: unknown) => { showToast({ message: resolveCatchFailureMessage(error), variant: 'error' }) },
+    onCapture: async (): Promise<boolean> => {
+      const result = await syncById({ id: detail.pokeApiId, ballType: readyBall }).unwrap()
+      rememberChance(result)
+      return result.caught
+    },
+    onCaught: () => { showToast({ message: t('detail.catchSuccess', { name: toDisplayName(detail.name) }), variant: 'success' }) },
+    // Not a failure — the ball was spent, the server rolled, and the pokemon won the roll.
+    onEscaped: () => { showToast({ message: t('detail.catchFailed'), variant: 'info' }) },
+    onError: reportThrowError,
   })
 
   // The captured state is held back until the throw resolves: the invalidated query can answer
@@ -149,12 +199,31 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
   const isCaptured = capturedAt !== undefined
   const spriteClassName = captureSpriteClassName(capture.phase)
 
-  // Re-syncing an entry you already own refreshes its base data — no throw, just the sync toast.
+  // For as long as a throw is ON SCREEN (mid-flight, or holding its result) the belt shows the ball
+  // that was thrown, not the one that is next. The wallet answers mid-wobble, and spending the last
+  // Master Ball would otherwise turn it into a Poké Ball in mid-air and jump the belt a rung.
+  const isThrowOnScreen = capture.isCatching || capture.phase !== 'idle'
+  const selectedBall = isThrowOnScreen && ballInFlight !== null ? ballInFlight : readyBall
+  const selectedOption = findOption(ballOptions, selectedBall)
+  // No wallet to pick from (anonymous, or a backend without the economy endpoints) keeps the
+  // pre-picker behaviour: the throw is drawn with the active theme's own ball.
+  const thrownBall = ballOptions.length === 0 ? themeBall : ballArtVariant(selectedBall, themeBall)
+
+  /**
+   * Re-syncing an entry you already own is ANOTHER THROW as far as the server is concerned:
+   * PokemonsService.attemptCatch consumes the ball, rolls the odds, and only rewrites the entry
+   * when the roll lands. So this is not a free refresh — the button names the ball it spends, and
+   * a lost roll is reported as the escape it is (the collection entry simply stays as it was).
+   */
   function handleResync(): void {
-    void syncById({ id: detail.pokeApiId, ballType: 'poke' })
+    void syncById({ id: detail.pokeApiId, ballType: readyBall })
       .unwrap()
-      .then(() => { showToast({ message: t('detail.syncSuccess'), variant: 'success' }) })
-      .catch((error: unknown) => { showToast({ message: resolveApiErrorMessage(error as ApiErrorShape, t), variant: 'error' }) })
+      .then((result) => {
+        rememberChance(result)
+        if (result.caught) showToast({ message: t('detail.syncSuccess'), variant: 'success' })
+        else showToast({ message: t('detail.catchFailed'), variant: 'info' })
+      })
+      .catch(reportThrowError)
   }
 
   function handleAction(): void {
@@ -168,6 +237,7 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
       handleResync()
       return
     }
+    setBallInFlight(readyBall)
     capture.start()
   }
 
@@ -175,6 +245,56 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
     if (capture.isCatching) return t('detail.catching')
     if (isCaptured) return t('detail.resync')
     return t('detail.catch')
+  }
+
+  /** An empty bag: the throw is replaced by the only thing that can fix it. */
+  function renderRestockLink(): JSX.Element {
+    return (
+      // Solid, not secondary — with the whole belt greyed out this is the only thing left to do.
+      <Button asChild size="lg" className="shadow-lg">
+        <Link to="/shop">
+          <ShoppingCart aria-hidden />
+          {t('nav.shop')}
+        </Link>
+      </Button>
+    )
+  }
+
+  function renderThrowButton(): JSX.Element {
+    const label = actionLabel()
+    return (
+      <Button
+        size="lg"
+        variant={isCaptured ? 'secondary' : 'default'}
+        className="shadow-lg"
+        disabled={capture.isCatching || isSyncing}
+        // The ball on deck is art in the button; screen readers get it named instead.
+        aria-label={selectedOption === undefined || selectedOption.name === '' ? undefined : `${label} · ${selectedOption.name}`}
+        onClick={handleAction}
+      >
+        {isCaptured ? (
+          <RefreshCw aria-hidden className={isSyncing ? 'animate-spin' : undefined} />
+        ) : (
+          // The button throws the ball the belt has on deck — the same one the animation draws.
+          <PokeballMark variant={thrownBall} className={capture.isCatching ? 'animate-spin' : undefined} />
+        )}
+        {label}
+        {isCaptured && ballOptions.length > 0 && (
+          // A re-sync costs a ball on the server, so the price tag is part of the button rather
+          // than a surprise subtraction in the bag afterwards.
+          <span aria-hidden className="flex items-center gap-1 border-l border-secondary-foreground/25 pl-2 text-xs font-bold tabular-nums">
+            <PokeballMark variant={thrownBall} />
+            ×1
+          </span>
+        )}
+      </Button>
+    )
+  }
+
+  /** Every action on this card spends a ball, so an empty bag replaces all of them. */
+  function renderAction(): JSX.Element {
+    const canRestock = isAuthenticated && ballOptions.length > 0 && !hasBallToThrow
+    return canRestock ? renderRestockLink() : renderThrowButton()
   }
 
   return (
@@ -192,7 +312,7 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
           ) : (
             <span aria-hidden className={cn('font-display text-8xl text-muted-foreground/50', spriteClassName)}>?</span>
           )}
-          <CaptureAnimation phase={capture.phase} />
+          <CaptureAnimation phase={capture.phase} variant={thrownBall} />
         </div>
 
         {/* Name plate riding the top of the artwork, with the entry number outside its right edge. */}
@@ -208,23 +328,24 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
           {capturedAt !== undefined && <CapturedBadge capturedAt={capturedAt} />}
         </div>
 
+        {/* The belt: what is on deck, what is left of it, and what it is worth against this
+            pokemon. Anonymous visitors get no belt — there is no bag to draw from. */}
+        {isAuthenticated && ballOptions.length > 0 && (
+          <div className={BALL_PICKER_CELL_CLASS}>
+            <BallPicker
+              options={ballOptions}
+              selected={selectedBall}
+              confirmedChance={serverChances[selectedBall] ?? null}
+              disabled={capture.isCatching || isSyncing}
+              fallbackVariant={themeBall}
+              onSelect={setPickedBall}
+            />
+          </div>
+        )}
+
         {/* The action straddles the card's bottom edge — the one control the page is really about. */}
         <div className="absolute inset-x-0 bottom-0 flex translate-y-1/2 justify-center px-4">
-          <Button
-            size="lg"
-            variant={isCaptured ? 'secondary' : 'default'}
-            className="shadow-lg"
-            disabled={capture.isCatching || isSyncing}
-            onClick={handleAction}
-          >
-            {isCaptured ? (
-              <RefreshCw aria-hidden className={isSyncing ? 'animate-spin' : undefined} />
-            ) : (
-              // The button throws the same ball the animation does — the active theme's.
-              <PokeballMark variant={THEME_POKEBALL[theme]} className={capture.isCatching ? 'animate-spin' : undefined} />
-            )}
-            {actionLabel()}
-          </Button>
+          {renderAction()}
         </div>
       </Card>
 

@@ -11,6 +11,7 @@ import { cn } from '../../lib/Cn'
 // Components
 import { PokeballMark } from '../brand/PokeballMark'
 import { THEME_POKEBALL } from '../brand/PokeballPalettes'
+import type { PokeballVariant } from '../brand/PokeballPalettes'
 
 // Styles — keyframes for this sequence only, kept out of the global stylesheet.
 import './CaptureAnimation.css'
@@ -23,18 +24,24 @@ const BALL_SIZE = 72
 
 interface CaptureAnimationProps {
   phase: CapturePhase
+  /**
+   * The ball being thrown — the one picked on the belt. Omitted (no wallet to pick from, or a
+   * ball whose own art has not landed yet) it falls back to the ACTIVE THEME'S ball, which is
+   * what every throw used before the picker existed.
+   */
+  variant?: PokeballVariant
 }
 
 /**
- * The throw, drawn with the ACTIVE THEME'S ball (emerald throws a Nest Ball, pearl a Heal Ball,
- * ...). Purely decorative and pointer-transparent: the outcome is announced by the toast and the
- * captured badge, so this whole layer is aria-hidden and never blocks the page.
+ * The throw, drawn with the ball that was actually picked. Purely decorative and
+ * pointer-transparent: the outcome is announced by the toast and the captured badge, so this whole
+ * layer is aria-hidden and never blocks the page.
  *
  * Renders nothing at all in the 'idle' phase — which is the only phase a reduced-motion run has.
  */
-export function CaptureAnimation({ phase }: CaptureAnimationProps): JSX.Element | null {
+export function CaptureAnimation({ phase, variant: thrownVariant }: CaptureAnimationProps): JSX.Element | null {
   const { theme } = useTheme()
-  const variant = THEME_POKEBALL[theme]
+  const variant = thrownVariant ?? THEME_POKEBALL[theme]
 
   if (phase === 'idle') return null
 

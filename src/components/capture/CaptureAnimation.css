@@ -20,6 +20,11 @@
   overflow: hidden;
   pointer-events: none;
   border-radius: inherit;
+  /* The ball drops onto the same band of the card the ball picker's plate sits on. It is the thing
+     being watched, so it flies IN FRONT of the plate — without this it lands behind it and the
+     break-open (the whole point of a lost throw) happens out of sight. Stays below the header and
+     the toasts, which live in their own, higher stacking contexts. */
+  z-index: 1;
 }
 
 @media (min-width: 640px) {

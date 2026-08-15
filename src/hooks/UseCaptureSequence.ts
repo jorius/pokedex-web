@@ -26,13 +26,19 @@ const RESULT_HOLD_MS = 1500
  */
 const REQUEST_GRACE_MS = 4000
 
-type CaptureOutcome = { ok: true } | { ok: false; error: unknown }
+type CaptureOutcome = { kind: 'caught' } | { kind: 'escaped' } | { kind: 'error'; error: unknown }
 
 export interface CaptureSequenceOptions {
-  /** Fires the capture request. Resolves on success, rejects with the API error shape. */
-  onCapture: () => Promise<unknown>
-  onSuccess: () => void
-  onFailure: (error: unknown) => void
+  /**
+   * Fires the throw. Resolves TRUE when the pokemon was caught and FALSE when it broke free —
+   * BOTH are successful requests: the server rolls the outcome and spends the ball either way.
+   * A rejection is a request that never produced a throw (no balls left, network, ...).
+   */
+  onCapture: () => Promise<boolean>
+  onCaught: () => void
+  /** The pokemon broke free. The ball still cracks open, but nothing went wrong. */
+  onEscaped: () => void
+  onError: (error: unknown) => void
 }
 
 export interface CaptureSequence {
@@ -55,8 +61,12 @@ function prefersReducedMotion(): boolean {
  * has finished and the request has settled (see REQUEST_GRACE_MS for the slow-request escape).
  * Under `prefers-reduced-motion: reduce` the animation is skipped entirely — the phase never
  * leaves 'idle' and only the result callbacks fire.
+ *
+ * The outcome is THREE-way, because a catch is a roll the server makes: caught, broke free, or the
+ * request itself failed. Only the first plays the success burst; the other two crack the ball open,
+ * and only the last is reported as an error.
  */
-export function useCaptureSequence({ onCapture, onSuccess, onFailure }: CaptureSequenceOptions): CaptureSequence {
+export function useCaptureSequence({ onCapture, onCaught, onEscaped, onError }: CaptureSequenceOptions): CaptureSequence {
   const [phase, setPhase] = useState<CapturePhase>('idle')
   const [isCatching, setIsCatching] = useState(false)
   const timersRef = useRef<number[]>([])
@@ -84,8 +94,9 @@ export function useCaptureSequence({ onCapture, onSuccess, onFailure }: CaptureS
 
   /** Reports the outcome and reopens the button. The result visual keeps playing after this. */
   function settle(outcome: CaptureOutcome): void {
-    if (outcome.ok) onSuccess()
-    else onFailure(outcome.error)
+    if (outcome.kind === 'caught') onCaught()
+    else if (outcome.kind === 'escaped') onEscaped()
+    else onError(outcome.error)
     isRunningRef.current = false
     setIsCatching(false)
   }
@@ -93,8 +104,8 @@ export function useCaptureSequence({ onCapture, onSuccess, onFailure }: CaptureS
   async function run(runId: number): Promise<void> {
     // Settle-shaped so the promise is never left rejected while the animation plays out.
     const settled: Promise<CaptureOutcome> = onCapture().then(
-      () => ({ ok: true }),
-      (error: unknown) => ({ ok: false, error }),
+      (caught): CaptureOutcome => (caught ? { kind: 'caught' } : { kind: 'escaped' }),
+      (error: unknown): CaptureOutcome => ({ kind: 'error', error }),
     )
 
     if (prefersReducedMotion()) {
@@ -128,7 +139,7 @@ export function useCaptureSequence({ onCapture, onSuccess, onFailure }: CaptureS
     }
 
     clearTimers()
-    setPhase(outcome.ok ? 'success' : 'fail')
+    setPhase(outcome.kind === 'caught' ? 'success' : 'fail')
     settle(outcome)
 
     await wait(RESULT_HOLD_MS)
