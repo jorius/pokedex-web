@@ -17,7 +17,7 @@ import { cn } from '../lib/Cn'
 import { formatPokedexNumber, formatTenths, humanizeSlug, toDisplayName } from '../lib/Format'
 
 // Store
-import { api, useGetLocalByPokeApiIdQuery, useGetPokemonByIdQuery, useGetPokemonByNameQuery, useSyncByIdMutation } from '../store/Api'
+import { useGetCatalogueQuery, useGetLocalByPokeApiIdQuery, useGetWalletQuery, useGetPokemonByIdQuery, useGetPokemonByNameQuery, useSyncByIdMutation } from '../store/Api'
 import type { ApiErrorShape } from '../store/Api'
 import { useAppSelector } from '../store/Hooks'
 import type { BallType, CatchResult, PokemonDetail } from '../store/Types'
@@ -145,8 +145,8 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
   // redraw themselves the moment a ball is spent — nothing is tracked locally. Both hooks are read
   // off the api object because Api.ts's named-export block covers the pokemon endpoints only and
   // that file belongs to a concurrent change; these are the very hooks it would export.
-  const { data: wallet, refetch: refetchWallet } = api.useGetWalletQuery(undefined, { skip: !isAuthenticated })
-  const { data: catalogue } = api.useGetCatalogueQuery(undefined, { skip: !isAuthenticated })
+  const { data: wallet, refetch: refetchWallet } = useGetWalletQuery(undefined, { skip: !isAuthenticated })
+  const { data: catalogue } = useGetCatalogueQuery(undefined, { skip: !isAuthenticated })
 
   const ballOptions = useMemo(() => toBallOptions(wallet, catalogue), [wallet, catalogue])
   // Only an EXPLICIT pick is stored; what is actually on deck is derived below. That way the belt

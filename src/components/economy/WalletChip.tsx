@@ -9,7 +9,7 @@ import { cn } from '../../lib/Cn'
 
 // Components
 import { PokeballMark } from '../brand/PokeballMark'
-import { useGetWalletQuery } from './EconomyApi'
+import { useGetWalletQuery } from '../../store/Api'
 import { formatCredits, totalBalls } from './EconomyFormat'
 
 /**

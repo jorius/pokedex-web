@@ -21,7 +21,7 @@ import './SlotsMachine.css'
 
 // Components
 import { Button } from '../ui/Button'
-import { useSpinSlotsMutation } from './EconomyApi'
+import { useSpinSlotsMutation } from '../../store/Api'
 import { formatCredits } from './EconomyFormat'
 import { SlotReel } from './SlotReel'
 import { SlotResultPanel } from './SlotResultPanel'

@@ -14,7 +14,7 @@ import type { SpinHistoryEntry, SpinOutcome } from '../../store/Types'
 import { Badge } from '../ui/Badge'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card'
 import { Skeleton } from '../ui/Skeleton'
-import { useGetSpinHistoryQuery } from './EconomyApi'
+import { useGetSpinHistoryQuery } from '../../store/Api'
 import { formatCredits, formatSpinDate } from './EconomyFormat'
 import { artworkUrl } from './SlotSymbols'
 

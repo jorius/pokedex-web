@@ -15,7 +15,7 @@ import type { ApiErrorShape } from '../store/Api'
 
 // Components
 import { BallShopCard } from '../components/economy/BallShopCard'
-import { useGetCatalogueQuery, useGetWalletQuery } from '../components/economy/EconomyApi'
+import { useGetCatalogueQuery, useGetWalletQuery } from '../store/Api'
 import { ballQuantity, formatCredits } from '../components/economy/EconomyFormat'
 import { Button } from '../components/ui/Button'
 import { Card, CardContent } from '../components/ui/Card'

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useDocumentTitle } from '../hooks/UseDocumentTitle'
 
 // Components
-import { useGetWalletQuery } from '../components/economy/EconomyApi'
+import { useGetWalletQuery } from '../store/Api'
 import { SlotMachine } from '../components/economy/SlotMachine'
 import { SpinHistoryList } from '../components/economy/SpinHistoryList'
 
