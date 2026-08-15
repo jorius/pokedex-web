@@ -67,9 +67,14 @@ export function RegisterPage(): JSX.Element {
                 autoComplete="email"
                 value={email}
                 aria-invalid={emailError !== null}
+                aria-describedby={emailError !== null ? 'register-email-error' : undefined}
                 onChange={(event): void => setEmail(event.target.value)}
               />
-              {emailError !== null && <p className="text-sm text-destructive">{emailError}</p>}
+              {emailError !== null && (
+                <p id="register-email-error" role="alert" className="text-sm text-destructive">
+                  {emailError}
+                </p>
+              )}
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="register-password">{t('auth.password')}</Label>
@@ -79,11 +84,20 @@ export function RegisterPage(): JSX.Element {
                 autoComplete="new-password"
                 value={password}
                 aria-invalid={passwordError !== null}
+                aria-describedby={passwordError !== null ? 'register-password-error' : undefined}
                 onChange={(event): void => setPassword(event.target.value)}
               />
-              {passwordError !== null && <p className="text-sm text-destructive">{passwordError}</p>}
+              {passwordError !== null && (
+                <p id="register-password-error" role="alert" className="text-sm text-destructive">
+                  {passwordError}
+                </p>
+              )}
             </div>
-            {serverError !== null && <p className="text-sm text-destructive">{serverError}</p>}
+            {serverError !== null && (
+              <p id="register-server-error" role="alert" className="text-sm text-destructive">
+                {serverError}
+              </p>
+            )}
             <Button type="submit" disabled={isLoading} className="mt-2">
               {isLoading && <Loader2 className="animate-spin" aria-hidden />}
               {t('auth.registerCta')}
