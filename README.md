@@ -1,6 +1,6 @@
 # Pokedex Web
 
-React frontend for the pokedex ecosystem — **React 19 + Vite + TypeScript**, Redux Toolkit with RTK Query, Tailwind CSS v4 over Radix primitives, `react-i18next`. It renders the shared Pokedex against **any of the three contract-identical backends** and can flip between them live from a header dropdown: because the backends return byte-identical responses and issue interchangeable JWTs against one shared database, a session started on one service keeps working after switching to another. Its own differentiators are **nine Pokemon-game themes** (each with its own hand-drawn pokeball brand mark), a hand-rolled bottom-left **toast** system carrying all transient feedback, debounced id/name **search**, a toggleable pagination-vs-**virtualized-infinite-scroll** browse grid, a redesigned detail page with a themed **capture** animation, **en/es i18n**, and a fully silent **token-rotation session layer**.
+React frontend for the pokedex ecosystem — **React 19 + Vite + TypeScript**, Redux Toolkit with RTK Query, Tailwind CSS v4 over Radix primitives, `react-i18next`. It renders the shared Pokedex against **any of the three contract-identical backends** and can flip between them live from a header dropdown: because the backends return byte-identical responses and issue interchangeable JWTs against one shared database, a session started on one service keeps working after switching to another. Its own differentiators are **nine Pokemon-game themes** (each with its own hand-drawn pokeball brand mark), a hand-rolled bottom-left **toast** system carrying all transient feedback, debounced id/name **search**, a toggleable pagination-vs-**virtualized-infinite-scroll** browse grid, a redesigned detail page with a themed **capture** animation, the **pokeball economy** on top of it — a wallet, a ball shop, a probabilistic catch you can lose, and a slot machine to fund it — a header that fits **one row at every width** (a drawer below `xl`, the full bar above), **en/es i18n**, and a **token-rotation session layer** silent enough to survive a phone's reload-and-background churn.
 
 ## Ecosystem overview
 
@@ -56,30 +56,37 @@ Presentation-component split, deliberately without over-abstraction: `pages/` ar
 ```
 src/
 ├── main.tsx                      # Bootstrap: Redux Provider, ThemeProvider, ToastProvider, i18n side-effect import, App
-├── App.tsx                       # SessionBootstrap (silent refresh on boot) + react-router routes
+├── App.tsx                       # SessionBootstrap (restore-then-refresh on boot) + react-router routes
 ├── pages/                        # Containers: BrowsePage, DetailPage, CollectionPage (protected),
+│                                 # ShopPage (protected), SlotsPage (protected),
 │                                 # LoginPage, RegisterPage, NotFoundPage
 ├── components/
 │   ├── auth/                     # RequireAuth — route guard redirecting anonymous users to /login
 │   ├── brand/                    # PokeballMark + THEME_POKEBALL/POKEBALL_PALETTES — the themed pokeball marks
-│   ├── capture/                  # CaptureAnimation (+ its keyframes), CaptureSprite, CapturedBadge
+│   ├── capture/                  # CaptureAnimation (+ its keyframes), CaptureSprite, CapturedBadge,
+│   │                             # BallPicker + BallOptions — the belt the throw draws from
 │   ├── collection/               # CollectionEntryCard, EditLocalDialog, DeleteConfirmDialog
-│   ├── layout/                   # Header, BackendSwitcher, LanguageSwitcher
+│   ├── economy/                  # WalletChip, BallShopCard/BallArt/QuantityStepper (shop),
+│   │                             # SlotMachine/SlotReel/SlotResultPanel/SpinHistoryList (+ SlotsMachine.css),
+│   │                             # EconomyFormat, QuantityRules, SlotSymbols, UseSlotSequence
+│   ├── layout/                   # Header (one row at every width), HeaderMenu (the sub-xl drawer),
+│   │                             # NavItems (the single nav source), BackendSwitcher, LanguageSwitcher, ThemeSwitcher
 │   ├── pokemon/                  # PokemonCard, StatBars, EvolutionChain, PaginationControls, BrowseModeToggle
 │   ├── search/                   # PokemonSearch — debounced id/name quick-jump over the detail endpoints
-│   └── ui/                       # Radix-based primitives (Button, Card, Dialog, Select, Input, Badge, …)
+│   └── ui/                       # Radix-based primitives (Button, Card, Dialog, Sheet, Select, Input, Badge, …)
 │                                 # plus the hand-rolled Toast/ToastProvider
 ├── store/
 │   ├── Store.ts                  # configureStore: api + auth + apiTarget + ui reducers
 │   ├── Api.ts                    # RTK Query: dynamic base URL, reauth-on-401 wrapper, all endpoints
-│   ├── AuthSlice.ts              # Access token + user IN MEMORY only
-│   ├── RefreshTokenStorage.ts    # Refresh token in localStorage (the one persisted secret)
+│   ├── AuthSlice.ts              # Session state; hydrates itself from the stored access token on boot
+│   ├── AccessTokenStorage.ts     # Access token in localStorage + its JWT `exp` guard
+│   ├── RefreshTokenStorage.ts    # Refresh token in localStorage
 │   ├── ApiTargetSlice.ts         # Backend switcher state (persisted)
-│   └── UiSlice.ts                # Page-size + browse-mode preferences (persisted)
+│   └── UiSlice.ts                # Page-size + browse-mode preferences (persisted) + the slots reveal lock
 ├── i18n/                         # i18next setup + locales/en.json, locales/es.json
 ├── themes/                       # ThemeProvider + themes.css — the nine palettes as CSS variable sets
 ├── hooks/                        # UseTheme, UseDocumentTitle, UseToast, UseDebouncedValue,
-│                                 # UseInfiniteScroll, UseVirtualList, UseCaptureSequence
+│                                 # UseInfiniteScroll, UseVirtualList, UseCaptureSequence, UseSpinLockedValue
 └── lib/                          # Cn (class merge), Format, Validation, ApiErrorMessage helpers
 ```
 
@@ -88,10 +95,14 @@ src/
 | Path | Page | Access |
 |---|---|---|
 | `/` | Pokedex browse — search + paginated or infinite-scroll grid | Public |
-| `/pokemon/:idOrName` | Detail — artwork with catch/capture, dossier (types/abilities/stats), evolution chain, description | Public |
-| `/collection` | My Collection — local replicas with sync/edit/delete | **Protected** (`RequireAuth`) |
+| `/pokemon/:idOrName` | Detail — artwork with the ball belt and the catch throw, dossier (types/abilities/stats), evolution chain, description | Public |
+| `/collection` | My Collection — local replicas with re-catch/edit/delete | **Protected** (`RequireAuth`) |
+| `/shop` | Poké Mart — buy balls with credits | **Protected** (`RequireAuth`) |
+| `/slots` | Game Corner — the three-reel slot machine and its spin history | **Protected** (`RequireAuth`) |
 | `/login`, `/register` | Auth forms | Public |
 | `*` | Not found | Public |
+
+`/shop` and `/slots` are the only entries flagged `isAuthOnly` in [`NavItems.ts`](src/components/layout/NavItems.ts), so they are hidden from the navigation until you sign in — advertising them to a visitor would only promise a page that bounces to `/login`. `/collection` stays visible to everyone, as it always has.
 
 ### Store design (RTK Query + reauth)
 
@@ -99,19 +110,42 @@ All API data flows through one RTK Query API ([`src/store/Api.ts`](src/store/Api
 
 - **Dynamic base query**: the base URL is read from the `apiTarget` slice on *every* request, so switching backends takes effect on the next call without recreating the store.
 - **Reauth wrapper**: any non-auth request that returns **401** triggers one `POST /api/auth/refresh` and retries the original request once; if the refresh fails, the session is cleared (logout). Concurrent 401s share a single in-flight refresh promise, so parallel queries never race multiple rotations — important because the backends treat refresh-token reuse as a theft signal and revoke the whole family.
-- **Session storage split**: the access token and user live only in Redux memory; the refresh token is the single persisted secret, in `localStorage` (`pokedex.refreshToken`) — an accepted, documented trade-off so sessions survive reloads.
-- **Silent bootstrap**: on app boot, `SessionBootstrap` checks for a stored refresh token. None → render immediately (anonymous, zero flash). Present → fire exactly one refresh behind a minimal full-page loader; success restores the session, failure renders anonymous.
+- **Session storage**: both tokens are persisted in `localStorage` — the refresh token under `pokedex.refreshToken`, the access token under `pokedex.accessToken` ([`AccessTokenStorage.ts`](src/store/AccessTokenStorage.ts)) — and `AuthSlice` writes both on `sessionEstablished` and clears both on `sessionCleared`. Keeping the access token at rest is the same exposure class as the refresh token that was already there (and the refresh token is the more powerful of the two, being long-lived and exchangeable), so it widens nothing meaningfully; it is an accepted, documented trade-off for this project. A deployment that cared would move both to httpOnly cookies.
+- **Boot without spending a refresh token**: `AuthSlice`'s initial state is hydrated straight from the stored access token when that token still has **≥30s** of life left, decoded from its own JWT `exp` claim (base64url by hand — no new dependency — with malformed tokens dropped). `SessionBootstrap` then takes the cheapest path available: an already-hydrated session renders immediately and **issues no refresh at all**; otherwise a stored refresh token gets exactly one `POST /api/auth/refresh` behind a minimal full-page loader; otherwise it renders anonymous with zero flash.
+
+  This is what makes reloads safe. Refresh tokens **rotate** — each use revokes the old one, and reuse detection revokes the entire family as suspected theft — so the previous "refresh on every boot" behaviour meant every reload spent a token, and a reload that interrupted an in-flight refresh (server rotated, response lost) left the next boot presenting an already-revoked token and being logged out for it. On a phone, with its reloads, backgrounding and flaky Wi-Fi, that was a routine event rather than an edge case. Measured on a real device viewport: **10 rapid reloads now produce 0 refresh calls** and keep the session every time, against one rotation per reload before. The 30s margin absorbs clock skew and the flight time of the first request, so boot never hydrates a session that 401s a moment later.
+
+  Nothing about mid-session expiry changed: when the access token genuinely runs out, the 401 → single-flight refresh → retry path above still runs, which is exactly when spending a refresh token is the right move. The backends' reuse detection is untouched.
 - **Capture state**: `getLocalByPokeApiId` (`GET /api/pokemons/local/by-poke-api-id/:pokeApiId`) answers whether the signed-in user already has a given Pokemon in their collection; a 404 means "not yet" and is read as a state, not an error. It shares the `Local` cache tag with `syncById`, so a successful catch invalidates and refetches the check with no manual refetch call.
+- **Economy cache tags**: `Wallet` and `Spins` sit alongside `Local`. Every throw, purchase and spin invalidates `Wallet`, so the header chip and the ball belt redraw themselves from the server's own numbers rather than tracking a local balance; spins additionally invalidate `Spins` to pull the history back.
+
+#### Persisted keys
+
+Everything the app remembers between visits, all under a `pokedex.` prefix:
+
+| Key | Written by | Holds |
+|---|---|---|
+| `pokedex.accessToken` | `AccessTokenStorage` | The 15-minute access JWT, so a reload needs no refresh |
+| `pokedex.refreshToken` | `RefreshTokenStorage` | The 24-hour refresh token |
+| `pokedex.apiTarget` | `ApiTargetSlice` | Backend switcher choice (`dotnet` \| `expressJs` \| `expressTs`) |
+| `pokedex.theme` | `ThemeProvider` | Active theme, read by the pre-paint script in `index.html` |
+| `pokedex.language` | `i18next` detector | `en` \| `es` |
+| `pokedex.pageSize` | `UiSlice` | Browse page size (10 / 20 / 50) |
+| `pokedex.browseMode` | `UiSlice` | `pagination` \| `infinite` |
+
+Logging out removes the two token keys and leaves the five preference keys alone.
 
 ### Backend switcher
 
 [`src/store/ApiTargetSlice.ts`](src/store/ApiTargetSlice.ts) knows the three services:
 
-| Target | Base URL | i18n label key |
-|---|---|---|
-| `dotnet` (default) | `http://localhost:5257` | `backend.dotnet` |
-| `expressJs` | `http://localhost:3000` | `backend.expressJs` |
-| `expressTs` | `http://localhost:3001` | `backend.expressTs` |
+| Target | Port | Base URL at `localhost:5173` | i18n label key |
+|---|---|---|---|
+| `dotnet` (default) | 5257 | `http://localhost:5257` | `backend.dotnet` |
+| `expressJs` | 3000 | `http://localhost:3000` | `backend.expressJs` |
+| `expressTs` | 3001 | `http://localhost:3001` | `backend.expressTs` |
+
+Only the **port** is fixed per target; the host comes from `window.location.hostname` at runtime, so the same bundle targets `192.168.0.254:5257|3000|3001` when the page is opened from a phone (see [Configuration](#configuration)).
 
 Initial target resolution: persisted choice (`localStorage` `pokedex.apiTarget`) → `VITE_API_BASE_URL` matched against the known base URLs → `dotnet`. The header dropdown persists every change.
 
@@ -176,7 +210,43 @@ Switching modes always lands on a clean first page, in either direction.
 
 The detail page is a two-column grid: a name plate rides the top of the artwork card, the catch/resync button is anchored **half off the artwork card's bottom edge** — the one control the page is really about — a right-hand "dossier" column carries types, quick facts, abilities, stats, and evolution mini-cards, and the description sits in its own card directly beneath the artwork, matching its width.
 
-Catching runs a themed sequence (`useCaptureSequence`, [`src/hooks/UseCaptureSequence.ts`](src/hooks/UseCaptureSequence.ts)): a "already captured?" check against `GET /api/pokemons/local/by-poke-api-id/:pokeApiId` decides whether the button reads "Catch" or "Resync," and a successful catch shows a **Captured** badge with the capture date. The throw — the active theme's own pokeball arcing in, absorbing the sprite, wobbling on landing, then either bursting into sparks or splitting back open — is drawn with plain CSS keyframes ([`CaptureAnimation.css`](src/components/capture/CaptureAnimation.css)), no animation library, and is skipped entirely under `prefers-reduced-motion: reduce` — the sequence never leaves its `idle` phase, and only the real request plus its toast/badge outcome still happen.
+Catching runs a themed sequence (`useCaptureSequence`, [`src/hooks/UseCaptureSequence.ts`](src/hooks/UseCaptureSequence.ts)): a "already captured?" check against `GET /api/pokemons/local/by-poke-api-id/:pokeApiId` decides whether the button reads "Catch" or "Refresh data," and a successful catch shows a **Captured** badge with the capture date. The throw — the ball on deck arcing in, absorbing the sprite, wobbling on landing, then either bursting into sparks or splitting back open — is drawn with plain CSS keyframes ([`CaptureAnimation.css`](src/components/capture/CaptureAnimation.css)), no animation library, and is skipped entirely under `prefers-reduced-motion: reduce` — the sequence never leaves its `idle` phase, and only the real request plus its toast/badge outcome still happen.
+
+**The throw can fail, and it always costs a ball.** `POST /api/pokemons/:id/sync` now carries a `ballType` and the server rolls the outcome: **201** means caught, **200** means the Pokemon broke free, and both answer `{caught, ballType, remainingBalls, chance, entry}` — so the client reads `caught`, never "any 2xx means success." An escape is reported as the neutral event it is (an info toast, not an error), the ball is gone either way, and `409` means the bag is empty, at which point the throw button is replaced by a link to the shop — with nothing to throw, restocking is the only move left. A **re-catch of something you already own is another throw**, not a free refresh: it spends a ball and can lose, so the button names the ball it will cost rather than springing the subtraction afterwards.
+
+The **ball belt** ([`BallPicker`](src/components/capture/BallPicker.tsx)) sits on a plate at the bottom of the artwork, joining the server catalogue (identity and cheapest-first order) to the wallet (stock) in [`BallOptions.ts`](src/components/capture/BallOptions.ts). Chips render in three legible tiers — on deck, in the bag, not owned — the belt falls back to the cheapest ball with stock whenever the picked one runs dry, and it freezes on the thrown ball for as long as a throw is on screen, so spending your last Ultra Ball can't turn it into a Poké Ball in mid-air. The odds line under the chips is deliberately modest: the server applies a per-pokemon rarity multiplier the client cannot compute, so before any throw it shows the ball's own rate as an approximation (`Poké Ball · ~40%`) — an upper bound the real chance can only sit under — and the tilde drops once a throw comes back with the server's actual `chance` for that ball against that Pokemon.
+
+### The pokeball economy
+
+Registering provisions the account in the same transaction that creates it: **10,000 credits and 10 Poké Balls**. From there credits buy balls, balls buy catch attempts, and the slot machine is the way back up when both run out. Every number below is **served by the backend** (`GET /api/economy/catalogue`) rather than hard-coded here — the frontend renders the catalogue it is given, in the order it is given, which is what keeps the three services interchangeable underneath it.
+
+| Ball | Price | Base catch rate |
+|---|---|---|
+| Poké Ball | 200 | 40% |
+| Great Ball | 600 | 60% |
+| Ultra Ball | 1,200 | 80% |
+| Master Ball | 5,000 | 100% |
+
+The rate above is the ball's own; the server multiplies it by a per-pokemon rarity factor (legendaries and mythicals are the hardest) before rolling, then clamps the result — which is why the detail page quotes the catalogue figure as an approximation until a real throw reports back.
+
+- **Wallet chip** ([`WalletChip`](src/components/economy/WalletChip.tsx)) — credits and total balls in the header, a link to the shop, mounted only when signed in (`/api/economy/wallet` is a 401 otherwise). It stays on the bar at *every* width, including the phone drawer layout, because it is the one control here that is read rather than operated and it changes on every catch, purchase and spin. There is no skeleton: the header is the one place a placeholder would shift the whole layout on every boot, so the chip simply appears once the wallet lands.
+- **Poké Mart** (`/shop`) — one card per ball, each with a `−/+` stepper over a real number input (buying 25 balls is one keystroke, not 24 taps), a live `Buy · <total>` price, and quantities bounded **1–99** by the server. Affordability is shown by disabling the button, but the server's `409 Not enough credits` remains the authority — a spend from another tab can still race past the courtesy check.
+- **Game Corner** (`/slots`) — a three-reel cabinet at **100 credits a pull**, rolled entirely server-side; the client only animates what it is told. Payouts are **jackpot 5,000** (three legendaries), **triple 1,000**, **pair 200**, no match **0**, and the last spins are listed underneath with their cost, payout and outcome.
+
+**The chip must not scoop the machine.** A spin invalidates the `Wallet` tag the moment the server answers — roughly a second before the third reel lands — so left alone the header would post the payout while the drums were still turning and give the result away. `useSpinLockedValue` ([`src/hooks/UseSpinLockedValue.ts`](src/hooks/UseSpinLockedValue.ts)) holds whatever the wallet said when the spin was paid for until the cabinet has finished its reveal; the lock itself lives in `ui.isSpinLocked`.
+
+### Responsive layout & mobile navigation
+
+The header is **one row at every width**, by construction rather than by wrapping. It used to be a `flex-wrap` row, and its contents stopped fitting a long way before the phone: brand plus nav plus the authenticated control cluster wanted roughly 1,294px (about 1,388 in Spanish) of a 1,152px container, so the desktop header sat permanently two rows deep — and at 412px it was four rows, five in Spanish, spending 350–400px of a 915px screen before any content appeared. Wrapping is now off entirely and the row fits on both sides of a single breakpoint, Tailwind's **`xl` (1280px)**:
+
+| Width | Header |
+|---|---|
+| **≥ `xl`** | The full bar. It fits because the two switchers whose value the page already states — language (the UI *is* in it) and theme (the trigger *is* its ball) — drop to icon-only triggers, and the account shows the bare address instead of the "Logged in as …" sentence (kept on `title`). Backend keeps its label: live backend switching is the app's headline feature. Measured at 1440: 1,022px English / 1,115px Spanish against 1,152 available |
+| **< `xl`** | Brand + wallet chip + a menu button opening [`HeaderMenu`](src/components/layout/HeaderMenu.tsx), a Radix `Sheet` drawer stacking the nav, all three switchers and the account actions at full width, each on a 48px row |
+
+Both shapes render the same [`NAV_ITEMS`](src/components/layout/NavItems.ts) list — text links on the bar, labelled icon rows in the drawer — so the two cannot drift apart the next time a route is added. Drawer rows close the sheet as they navigate, and an open drawer closes itself if the viewport grows past `xl`, where its trigger no longer exists.
+
+Elsewhere the same rule applies: controls that are genuinely primary get real touch targets below `xl` and drop back to their compact desktop size above it — the ball belt's chips (30px was the smallest primary control in the app), the wallet chip, the "top up at the shop" link on an empty slots wallet. Verified on a Galaxy S24 Ultra viewport (412 × 915 @ DPR 3.5, touch, mobile UA): every page, in both languages, with **no horizontal scroll anywhere**.
 
 ## Prerequisites
 
@@ -293,11 +363,12 @@ Set-NetConnectionProfile -InterfaceAlias 'Ethernet 2' -NetworkCategory Private
 
 ## Session handling (what to expect as a user)
 
-1. **Register/Login** — the backend returns a user, a 15-minute access JWT (kept in memory) and a 24-hour refresh token (kept in `localStorage`).
+1. **Register/Login** — the backend returns a user, a 15-minute access JWT and a 24-hour refresh token; both are stored (see [Persisted keys](#persisted-keys)). Registering also provisions the wallet: 10,000 credits and 10 Poké Balls.
 2. **Browsing stays uninterrupted** — when the access token expires, the first 401 triggers a silent refresh + retry; you never see it.
-3. **Reloads keep you signed in** — the stored refresh token silently re-establishes the session at boot.
+3. **Reloads keep you signed in, and cost nothing** — boot restores the session from the stored access token while it is still valid, without touching the refresh token. Only once it has expired does a reload spend a refresh. This is what makes rapid reloads, backgrounding and flaky Wi-Fi safe: refresh tokens rotate, and spending one on every boot used to race the rotation and get the whole family revoked.
 4. **After 24 hours** (absolute, from login) the refresh family dies server-side and you are asked to log in again.
-5. **Switching backends keeps your session** — tokens are cross-service by contract.
+5. **Switching backends keeps your session** — tokens are cross-service by contract, so the wallet, collection and spin history all follow you to the new service.
+6. **Logging out** clears both tokens locally and revokes the refresh family server-side; your theme, language, backend and browse preferences survive.
 
 ## Testing
 
@@ -308,6 +379,8 @@ npm run lint && npm run typecheck && npm run build
 ```
 
 all of which pass clean, plus live browser verification of every page against all three backends during development.
+
+The standing manual gate is a **full walk over the LAN on a real phone viewport** — register, browse (both modes), catch until you have seen both a capture and an escape, collection edit/delete, shop, slots, a mid-session backend switch, themes, both languages, repeated reloads, logout/login — asserting no horizontal scroll, no console errors and no failed requests along the way. The one 404 you *should* see is the captured-check (`/api/pokemons/local/by-poke-api-id/:id`) answering "not in your collection," which is a state, not a fault.
 
 ## Troubleshooting
 
@@ -320,6 +393,10 @@ all of which pass clean, plus live browser verification of every page against al
 | Upgrading ESLint to 10 breaks `npm run lint` | Deliberate pin: `eslint-plugin-react` declares peer support only up to ESLint `^9.7`, so this repo stays on ESLint 9 until the plugin catches up |
 | Port 5173 in use | Another Vite instance is running; Vite will offer the next free port, but the backends' CORS policy is permissive so any port works |
 | Empty browse grid | The selected backend isn't running (check the header switcher), or it can't reach PokeAPI — the grid needs no database, only the backend + upstream |
+| No wallet chip and no ball belt while signed in | `/api/economy/wallet` isn't answering — usually the selected backend can't reach PostgreSQL. The belt renders nothing rather than guessing, and the detail page falls back to its pre-economy throw |
+| "Catch" did nothing but a ball disappeared | It didn't fail — the Pokemon broke free. An escape is a normal `200` that spends the ball; the toast says so, and the odds are the server's, not the ball's printed rate |
+| A re-catch on something already collected cost a ball | Working as intended: a re-catch is another throw, priced on the button, and it can lose |
+| Header wraps to a second row | It shouldn't at any width — the row is sized to fit on both sides of `xl`. A second line means something overflowed; check anything newly added to the bar rather than re-enabling `flex-wrap` |
 
 ## Ecosystem siblings
 
