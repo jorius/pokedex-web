@@ -74,6 +74,7 @@
     "abilities": "Abilities",
     "category": "Category",
     "weight": "Weight",
+    "weightValue": "{{value}} kg",
     "hiddenAbility": "Hidden ability"
   },
   "detail": {
@@ -83,6 +84,7 @@
     "description": "Description",
     "evolutionChain": "Evolution chain",
     "height": "Height",
+    "heightValue": "{{value}} m",
     "weight": "Weight",
     "sync": "Sync to collection",
     "syncSuccess": "Added to your collection.",

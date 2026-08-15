@@ -12,7 +12,7 @@ const PAGE_SIZE_STORAGE_KEY = 'pokedex.pageSize'
 
 const DEFAULT_PAGE_SIZE: PageSize = 20
 
-function isPageSize(value: unknown): value is PageSize {
+export function isPageSize(value: unknown): value is PageSize {
   return typeof value === 'number' && (PAGE_SIZES as readonly number[]).includes(value)
 }
 
