@@ -111,6 +111,37 @@ export interface Wallet {
   balls: WalletBall[]
 }
 
+/**
+ * What GET /api/economy/wallet answers: the wallet plus the daily-bonus state and the safety-net
+ * verdict for THIS read.
+ *
+ * Deliberately a separate type from `Wallet` rather than three more fields on it, because ONLY the
+ * read carries them — buy, spin, daily and release all echo the bare wallet. Folding them into
+ * `Wallet` would let a caller read `wallet.dailyAvailable` off a spin result and be handed
+ * `undefined` where the type promised a boolean.
+ */
+export interface WalletStatus extends Wallet {
+  dailyAvailable: boolean
+  /** ISO-8601, and null exactly when `dailyAvailable` is true — nothing to count down to. */
+  nextDailyAt: string | null
+  /**
+   * True ONLY on the read that granted the emergency balls to a broke, ball-less trainer, never on
+   * the reads after it. So it is an EVENT arriving on a query, not a state to render.
+   */
+  safetyNetGranted: boolean
+}
+
+/** POST /api/economy/daily: the credited wallet plus the instant the bonus unlocks again. */
+export interface DailyClaimResult extends Wallet {
+  nextClaimAt: string
+}
+
+/** POST /api/pokemons/local/{entryId}/release: what letting the pokemon go paid, and the new purse. */
+export interface ReleaseResult {
+  creditsAwarded: number
+  wallet: Wallet
+}
+
 export interface BuyBallsRequest {
   ballType: BallType
   quantity: number
@@ -145,5 +176,7 @@ export interface CatchResult {
   ballType: BallType
   remainingBalls: number
   chance: number
+  /** Credits paid for a landed throw: more for a species new to the collection, 0 on an escape. */
+  creditsAwarded: number
   entry: LocalPokemon | null
 }

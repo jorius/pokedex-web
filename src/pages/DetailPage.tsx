@@ -1,6 +1,6 @@
 // External
 import { ArrowLeft, RefreshCw, ShoppingCart } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { JSX, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
@@ -30,6 +30,7 @@ import { BallPicker } from '../components/capture/BallPicker'
 import { CaptureAnimation } from '../components/capture/CaptureAnimation'
 import { captureSpriteClassName } from '../components/capture/CaptureSprite'
 import { CapturedBadge } from '../components/capture/CapturedBadge'
+import { formatCredits } from '../components/economy/EconomyFormat'
 import { EvolutionChain } from '../components/pokemon/EvolutionChain'
 import { StatBars } from '../components/pokemon/StatBars'
 import { Badge } from '../components/ui/Badge'
@@ -148,7 +149,7 @@ interface DetailContentProps {
 }
 
 function DetailContent({ detail }: DetailContentProps): JSX.Element {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const { theme } = useTheme()
@@ -178,6 +179,15 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
   // ball's own number — a per-pokemon rarity multiplier is applied on top of it, server-side — so
   // the first throw with a ball replaces the estimate with the real figure. See BallPicker.
   const [serverChances, setServerChances] = useState<Partial<Record<BallType, number>>>({})
+  /*
+   * What the last landed throw paid, parked between the response arriving and the toast firing.
+   *
+   * A ref rather than state on purpose: the capture sequence resolves `onCapture` with nothing but
+   * a boolean and then plays roughly two seconds of animation before `onCaught` runs, so the amount
+   * has to survive that gap — but nothing on screen renders it in the meantime, and making it state
+   * would re-render the whole detail page mid-wobble for a value only a callback ever reads.
+   */
+  const lastRewardRef = useRef<number>(0)
 
   const pickedOption = pickedBall === null ? undefined : findOption(ballOptions, pickedBall)
   const cheapestOption = cheapestOwned(ballOptions)
@@ -189,6 +199,22 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
 
   function rememberChance(result: CatchResult): void {
     setServerChances((previous) => ({ ...previous, [result.ballType]: result.chance }))
+  }
+
+  /**
+   * Appends what a landed throw paid — more for a species new to the collection, more again for a
+   * legendary — to the message reporting it.
+   *
+   * A separate clause rather than a second copy of every success string, because BOTH ways of
+   * landing a throw earn: a first catch and a re-sync of an entry you already own are the same
+   * roll to the server, and the second one paying 25 credits silently would be the odd one out.
+   *
+   * Guarded so the clause can vanish entirely. The server does not pay 0 on a success today, but
+   * "+0 credits" is not a sentence worth risking, and a backend predating the field sends undefined.
+   */
+  function withCatchReward(message: string, creditsAwarded: number): string {
+    if (!(creditsAwarded > 0)) return message
+    return `${message} ${t('detail.catchReward', { amount: formatCredits(creditsAwarded, i18n.language) })}`
   }
 
   /** A REJECTED throw — the request never produced a roll. An escape is not this. */
@@ -204,9 +230,14 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
     onCapture: async (): Promise<boolean> => {
       const result = await syncById({ id: detail.pokeApiId, ballType: readyBall }).unwrap()
       rememberChance(result)
+      // Parked for onCaught, which runs once the ball has finished wobbling and is handed only a
+      // boolean by the sequence.
+      lastRewardRef.current = result.creditsAwarded
       return result.caught
     },
-    onCaught: () => { showToast({ message: t('detail.catchSuccess', { name: toDisplayName(detail.name) }), variant: 'success' }) },
+    onCaught: () => {
+      showToast({ message: withCatchReward(t('detail.catchSuccess', { name: toDisplayName(detail.name) }), lastRewardRef.current), variant: 'success' })
+    },
     // Not a failure — the ball was spent, the server rolled, and the pokemon won the roll.
     onEscaped: () => { showToast({ message: t('detail.catchFailed'), variant: 'info' }) },
     onError: reportThrowError,
@@ -239,7 +270,7 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
       .unwrap()
       .then((result) => {
         rememberChance(result)
-        if (result.caught) showToast({ message: t('detail.syncSuccess'), variant: 'success' })
+        if (result.caught) showToast({ message: withCatchReward(t('detail.syncSuccess'), result.creditsAwarded), variant: 'success' })
         else showToast({ message: t('detail.catchFailed'), variant: 'info' })
       })
       .catch(reportThrowError)

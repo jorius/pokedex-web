@@ -26,6 +26,29 @@ export function ballQuantity(wallet: Wallet | undefined, type: string): number {
   return wallet?.balls.find((ball) => ball.type === type)?.quantity ?? 0
 }
 
+const MS_PER_SECOND = 1000
+const SECONDS_PER_MINUTE = 60
+const SECONDS_PER_HOUR = 3600
+
+/**
+ * A remaining duration as a fixed HH:MM:SS clock — what the daily bonus counts down on.
+ *
+ * Zero-padded and fixed-width on purpose: the claim control shows this once a second, and an
+ * unpadded readout would resize the button on every tick. Deliberately NOT run through Intl either.
+ * This is a timer readout rather than a date, every supported locale reads 23:59:14 the same way,
+ * and the daily cooldown never reaches three digits of hours.
+ *
+ * Rounded UP, so a target 500ms away still reads 00:00:01 and the clock shows all zeroes only once
+ * the wait is genuinely over.
+ */
+export function formatCountdown(remainingMs: number): string {
+  const totalSeconds = Math.max(0, Math.ceil(remainingMs / MS_PER_SECOND))
+  const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR)
+  const minutes = Math.floor((totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE)
+  const seconds = totalSeconds % SECONDS_PER_MINUTE
+  return [hours, minutes, seconds].map((part) => String(part).padStart(2, '0')).join(':')
+}
+
 /**
  * Spin history timestamps. Same-day spins (the common case while playing) read as a clock time and
  * older ones as a short date — a full ISO stamp on every row is noise nobody scans.

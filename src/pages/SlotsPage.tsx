@@ -34,7 +34,7 @@ export function SlotsPage(): JSX.Element {
 
       {/* A wallet that has not landed yet reads as zero credits, which parks the machine with its
           "top up at the shop" hint until the real balance arrives — never a live SPIN it cannot pay for. */}
-      <SlotMachine credits={wallet?.credits ?? 0} />
+      <SlotMachine credits={wallet?.credits ?? 0} isDailyAvailable={wallet?.dailyAvailable ?? false} />
 
       <SpinHistoryList />
     </div>

@@ -1,5 +1,5 @@
 // External
-import { Pencil, Trash2 } from 'lucide-react'
+import { HeartHandshake, Pencil, Trash2 } from 'lucide-react'
 import type { JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -19,6 +19,7 @@ import { Card } from '../ui/Card'
 interface CollectionEntryCardProps {
   record: LocalPokemon
   onEdit: () => void
+  onRelease: () => void
   onDelete: () => void
 }
 
@@ -35,12 +36,12 @@ function formatCapturedDate(isoTimestamp: string, locale: string): string {
  * note, and capture date. The sprite/info area is a whole-area link to the detail page; edit and
  * delete stay siblings of that link — never nested inside it — so the buttons stay valid HTML,
  * keep their own keyboard stop, and never trigger navigation. */
-export function CollectionEntryCard({ record, onEdit, onDelete }: CollectionEntryCardProps): JSX.Element {
+export function CollectionEntryCard({ record, onEdit, onRelease, onDelete }: CollectionEntryCardProps): JSX.Element {
   const { t, i18n } = useTranslation()
   const displayName = humanizeSlug(record.name)
-  // The delete button's accessible name must match what DeleteConfirmDialog's body will
+  // The delete and release buttons' accessible names must match what their confirm dialogs will
   // say — nickname when one exists, species name otherwise.
-  const deleteName = record.localizedName ?? displayName
+  const entryName = record.localizedName ?? displayName
 
   return (
     <Card className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
@@ -86,15 +87,30 @@ export function CollectionEntryCard({ record, onEdit, onDelete }: CollectionEntr
         </div>
       </Link>
 
-      <div className="flex shrink-0 items-center gap-2 self-start sm:self-center">
+      {/* Three actions now, so the row is allowed to wrap: at 412px Edit/Release/Delete sit on one
+          line with room to spare, but a longer translation of any of the three must fold onto a
+          second line rather than push the card wider than the phone. */}
+      <div className="flex shrink-0 flex-wrap items-center gap-2 self-start sm:self-center">
         <Button variant="outline" size="sm" aria-label={t('collection.editAria', { name: displayName })} onClick={onEdit}>
           <Pencil aria-hidden />
           {t('common.edit')}
         </Button>
+        {/* Release sits BETWEEN Edit and Delete and is styled like neither: a plain ghost, because
+            it is neither the safe edit nor the destructive discard. Its own icon and its own word
+            are what keep it from being mistaken for the button next to it. */}
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-label={t('collection.releaseAria', { name: entryName })}
+          onClick={onRelease}
+        >
+          <HeartHandshake aria-hidden />
+          {t('collection.release')}
+        </Button>
         <Button
           variant="destructiveGhost"
           size="sm"
-          aria-label={t('collection.deleteAria', { name: deleteName })}
+          aria-label={t('collection.deleteAria', { name: entryName })}
           onClick={onDelete}
         >
           <Trash2 aria-hidden />

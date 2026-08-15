@@ -11,6 +11,7 @@ import { useToast } from '../hooks/UseToast'
 // Lib
 import { resolveApiErrorMessage } from '../lib/ApiErrorMessage'
 import { cn } from '../lib/Cn'
+import { toDisplayName } from '../lib/Format'
 
 // Store
 import { useGetLocalQuery } from '../store/Api'
@@ -24,6 +25,8 @@ import type { PageSize } from '../store/UiSlice'
 import { CollectionEntryCard } from '../components/collection/CollectionEntryCard'
 import { DeleteConfirmDialog } from '../components/collection/DeleteConfirmDialog'
 import { EditLocalDialog } from '../components/collection/EditLocalDialog'
+import { ReleaseConfirmDialog } from '../components/collection/ReleaseConfirmDialog'
+import { formatCredits } from '../components/economy/EconomyFormat'
 import { PaginationControls } from '../components/pokemon/PaginationControls'
 import { Button } from '../components/ui/Button'
 import { Card, CardContent } from '../components/ui/Card'
@@ -49,7 +52,7 @@ function SkeletonRow(): JSX.Element {
 }
 
 export function CollectionPage(): JSX.Element {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const dispatch = useAppDispatch()
   const { showToast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -58,6 +61,7 @@ export function CollectionPage(): JSX.Element {
   const { data, error, isLoading, isFetching, refetch } = useGetLocalQuery({ page, pageSize })
 
   const [editingRecord, setEditingRecord] = useState<LocalPokemon | null>(null)
+  const [releasingRecord, setReleasingRecord] = useState<LocalPokemon | null>(null)
   const [deletingRecord, setDeletingRecord] = useState<LocalPokemon | null>(null)
 
   useDocumentTitle(`${t('common.appName')} — ${t('collection.title')}`)
@@ -78,14 +82,32 @@ export function CollectionPage(): JSX.Element {
     showToast({ message: t('collection.updated'), variant: 'success' })
   }
 
-  function handleDeleted(): void {
-    setDeletingRecord(null)
-    showToast({ message: t('collection.deleted'), variant: 'success' })
-    // Deleting the last record on a page beyond the first leaves it empty — step back a page
-    // instead of showing a dead end.
+  // Removing the last record on a page beyond the first leaves it empty — step back a page instead
+  // of showing a dead end. Shared by delete and release, which both take an entry off the page.
+  function stepBackIfPageEmptied(): void {
     if (data !== undefined && data.items.length === 1 && page > 1) {
       handlePageChange(page - 1)
     }
+  }
+
+  function handleDeleted(): void {
+    setDeletingRecord(null)
+    showToast({ message: t('collection.deleted'), variant: 'success' })
+    stepBackIfPageEmptied()
+  }
+
+  /**
+   * The refund is read from the RESPONSE rather than recomputed here, so the figure the player is
+   * congratulated with is the one the server actually paid — the legendary bonus included, and
+   * without this page needing to know which species earn it.
+   */
+  function handleReleased(creditsAwarded: number): void {
+    // Read before clearing: the toast names the entry, and the state is about to be gone. Same
+    // title-casing as the dialog that just asked, so the two sentences agree.
+    const name = releasingRecord === null ? '' : releasingRecord.localizedName ?? toDisplayName(releasingRecord.name)
+    setReleasingRecord(null)
+    showToast({ message: t('collection.released', { name, amount: formatCredits(creditsAwarded, i18n.language) }), variant: 'success' })
+    stepBackIfPageEmptied()
   }
 
   // A failed page load stays an inline page state (there is no list to show), but a failed RETRY
@@ -139,7 +161,12 @@ export function CollectionPage(): JSX.Element {
       <ul className={cn('flex list-none flex-col gap-4 p-0 transition-opacity', isFetching && 'pointer-events-none opacity-60')}>
         {data.items.map((record) => (
           <li key={record.id}>
-            <CollectionEntryCard record={record} onEdit={(): void => setEditingRecord(record)} onDelete={(): void => setDeletingRecord(record)} />
+            <CollectionEntryCard
+              record={record}
+              onEdit={(): void => setEditingRecord(record)}
+              onRelease={(): void => setReleasingRecord(record)}
+              onDelete={(): void => setDeletingRecord(record)}
+            />
           </li>
         ))}
       </ul>
@@ -168,6 +195,14 @@ export function CollectionPage(): JSX.Element {
           open
           onOpenChange={(next): void => { if (!next) setEditingRecord(null) }}
           onUpdated={handleUpdated}
+        />
+      )}
+      {releasingRecord !== null && (
+        <ReleaseConfirmDialog
+          record={releasingRecord}
+          open
+          onOpenChange={(next): void => { if (!next) setReleasingRecord(null) }}
+          onReleased={handleReleased}
         />
       )}
       {deletingRecord !== null && (

@@ -39,6 +39,8 @@ const REEL_COUNT = 3
 interface SlotMachineProps {
   /** The caller's balance, straight from the wallet query. */
   credits: number
+  /** Whether the daily bonus is claimable — only ever shown as part of the broke hint below. */
+  isDailyAvailable: boolean
 }
 
 /**
@@ -55,7 +57,7 @@ interface SlotMachineProps {
  * to give the outcome away about a second early. Engaging the lock here pins both at once; see
  * UiSlice.ts and useSpinLockedValue.
  */
-export function SlotMachine({ credits }: SlotMachineProps): JSX.Element {
+export function SlotMachine({ credits, isDailyAvailable }: SlotMachineProps): JSX.Element {
   const { t, i18n } = useTranslation()
   const { showToast } = useToast()
   const dispatch = useAppDispatch()
@@ -181,6 +183,9 @@ export function SlotMachine({ credits }: SlotMachineProps): JSX.Element {
               <Link to="/shop" className="inline-flex min-h-10 items-center rounded-md px-1 font-bold underline xl:min-h-0 xl:px-0">
                 {t('slots.goToShop')}
               </Link>
+              {/* A broke player being sent to the shop should be told there is something FREE
+                  waiting there — otherwise "top up" reads as "go and spend money you don't have". */}
+              {isDailyAvailable && <span className="block text-muted-foreground">{t('slots.dailyReady')}</span>}
             </p>
           )}
         </div>

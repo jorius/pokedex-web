@@ -125,6 +125,7 @@
     "catch": "Catch",
     "catching": "Catching…",
     "catchSuccess": "{{name}} was caught!",
+    "catchReward": "+{{amount}} credits",
     "catchFailed": "The Pokémon broke free. Try again.",
     "alreadyCaptured": "In your collection",
     "resync": "Refresh data"
@@ -142,8 +143,15 @@
     "deleteAria": "Delete {{name}}",
     "deleteConfirmTitle": "Delete this entry?",
     "deleteConfirmBody": "This will remove {{name}} from your collection. This can't be undone.",
+    "release": "Release",
+    "releaseAria": "Release {{name}} for credits",
+    "releaseConfirmTitle": "Release this Pokémon?",
+    "releaseConfirmBody": "Set {{name}} free and the Poké Mart will pay you {{amount}} credits for the entry.",
+    "releaseConfirmVersusDelete": "Not the same as Delete: deleting an entry removes it and pays nothing. Either way it leaves your collection, and neither can be undone.",
+    "releaseAction": "Release for {{amount}}",
     "updated": "Entry updated.",
     "deleted": "Entry deleted.",
+    "released": "{{name}} was released — you earned {{amount}} credits.",
     "fieldMax": "{{count}}/{{max}} characters."
   },
   "economy": {
@@ -152,6 +160,18 @@
     "owned": "Owned {{count}}",
     "walletTitle": "Your wallet — open the shop",
     "walletAria": "Wallet: {{credits}} credits, {{balls}} balls. Open the shop.",
+    "walletTitleDaily": "Your wallet — daily bonus ready",
+    "walletAriaDaily": "Wallet: {{credits}} credits, {{balls}} balls. Daily bonus ready to claim. Open the shop.",
+    "safetyNet": "Out of balls and out of credits — here are {{count}} Poké Balls to get you going again.",
+    "daily": {
+      "title": "Daily bonus",
+      "description": "{{amount}} credits, free once every 24 hours.",
+      "claim": "Claim {{amount}} credits",
+      "claiming": "Claiming…",
+      "claimedLabel": "Claimed",
+      "nextIn": "Next bonus in {{time}}",
+      "claimed": "Daily bonus claimed — {{amount}} credits!"
+    },
     "ballName": {
       "poke": "Poké Ball",
       "great": "Great Ball",
@@ -181,6 +201,7 @@
     "idleHint": "Insert {{amount}} credits and pull.",
     "needCredits": "You need {{amount}} credits to play.",
     "goToShop": "Top up at the shop",
+    "dailyReady": "Your daily bonus is waiting there.",
     "payout": "You won {{amount}} credits",
     "spent": "You spent {{amount}} credits",
     "payoutShort": "+{{amount}}",

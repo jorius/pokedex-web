@@ -1,5 +1,6 @@
 // External
 import { Coins } from 'lucide-react'
+import { useCallback } from 'react'
 import type { JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -15,6 +16,7 @@ import type { ApiErrorShape } from '../store/Api'
 
 // Components
 import { BallShopCard } from '../components/economy/BallShopCard'
+import { DailyBonusCard } from '../components/economy/DailyBonusCard'
 import { useGetCatalogueQuery, useGetWalletQuery } from '../store/Api'
 import { ballQuantity, formatCredits } from '../components/economy/EconomyFormat'
 import { Button } from '../components/ui/Button'
@@ -58,9 +60,13 @@ export function ShopPage(): JSX.Element {
   const { t, i18n } = useTranslation()
   const { showToast } = useToast()
   const { data: catalogue, error, isLoading, refetch } = useGetCatalogueQuery()
-  const { data: wallet } = useGetWalletQuery()
+  const { data: wallet, refetch: refetchWallet } = useGetWalletQuery()
 
   useDocumentTitle(`${t('common.appName')} — ${t('shop.title')}`)
+
+  // Stable by way of RTK Query's own refetch identity, which is what keeps DailyBonusCard's
+  // elapsed-cooldown effect to a single refetch instead of a loop.
+  const handleWalletStale = useCallback((): void => { void refetchWallet() }, [refetchWallet])
 
   function handleRetry(): void {
     void refetch()
@@ -121,6 +127,12 @@ export function ShopPage(): JSX.Element {
           </span>
         </div>
       </div>
+
+      {/* Held back until the wallet lands rather than shown in a default state: a card that guesses
+          "already claimed" and corrects itself a moment later would train the eye to ignore it. */}
+      {wallet !== undefined && (
+        <DailyBonusCard isAvailable={wallet.dailyAvailable} nextClaimAt={wallet.nextDailyAt} onWalletStale={handleWalletStale} />
+      )}
 
       {renderContent()}
     </div>

@@ -17,6 +17,9 @@ import type {
   UpdatePokemonPayload,
   BallCatalogueEntry,
   Wallet,
+  WalletStatus,
+  DailyClaimResult,
+  ReleaseResult,
   BuyBallsRequest,
   SpinResult,
   SpinHistoryEntry,
@@ -196,11 +199,28 @@ export const api = createApi({
       transformErrorResponse: toApiError,
     }),
 
-    getWallet: builder.query<Wallet, void>({
+    /**
+     * The read carries more than the purse: `dailyAvailable`/`nextDailyAt` drive the shop's claim
+     * control, and `safetyNetGranted` is an EVENT — true only on the read that handed a stranded
+     * trainer their emergency balls, so it must be consumed as it arrives rather than rendered.
+     */
+    getWallet: builder.query<WalletStatus, void>({
       query: () => '/api/economy/wallet',
-      transformResponse: (response: ApiEnvelope<Wallet>): Wallet => response.data as Wallet,
+      transformResponse: (response: ApiEnvelope<WalletStatus>): WalletStatus => response.data as WalletStatus,
       transformErrorResponse: toApiError,
       providesTags: ['Wallet'],
+    }),
+
+    /**
+     * The daily bonus. 409 ("Daily bonus already claimed") is the server's authority on the
+     * cooldown — the disabled button is only a courtesy, and a claim from another tab or a phone
+     * can still race past it, so callers must report the 409 rather than assume it cannot happen.
+     */
+    claimDaily: builder.mutation<DailyClaimResult, void>({
+      query: () => ({ url: '/api/economy/daily', method: 'POST' }),
+      transformResponse: (response: ApiEnvelope<DailyClaimResult>): DailyClaimResult => response.data as DailyClaimResult,
+      transformErrorResponse: toApiError,
+      invalidatesTags: ['Wallet'],
     }),
 
     buyBalls: builder.mutation<Wallet, BuyBallsRequest>({
@@ -239,6 +259,18 @@ export const api = createApi({
       transformResponse: (): void => undefined,
       transformErrorResponse: toApiError,
       invalidatesTags: ['Local'],
+    }),
+
+    /**
+     * Releasing is NOT deleting: the entry leaves the collection either way, but this one pays the
+     * refund back into the wallet, so it invalidates `Wallet` as well as `Local`. The two are
+     * separate endpoints on the server for the same reason they are separate actions in the UI.
+     */
+    releaseLocal: builder.mutation<ReleaseResult, string>({
+      query: (id) => ({ url: `/api/pokemons/local/${id}/release`, method: 'POST' }),
+      transformResponse: (response: ApiEnvelope<ReleaseResult>): ReleaseResult => response.data as ReleaseResult,
+      transformErrorResponse: toApiError,
+      invalidatesTags: ['Local', 'Wallet'],
     }),
 
     register: builder.mutation<AuthSession, AuthCredentials>({
@@ -319,9 +351,11 @@ export const {
   useSyncByIdMutation,
   useUpdateLocalMutation,
   useDeleteLocalMutation,
+  useReleaseLocalMutation,
   useGetCatalogueQuery,
   useGetWalletQuery,
   useBuyBallsMutation,
+  useClaimDailyMutation,
   useSpinSlotsMutation,
   useGetSpinHistoryQuery,
   useRegisterMutation,

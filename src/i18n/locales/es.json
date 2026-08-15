@@ -125,6 +125,7 @@
     "catch": "Capturar",
     "catching": "Capturando…",
     "catchSuccess": "¡{{name}} fue capturado!",
+    "catchReward": "+{{amount}} créditos",
     "catchFailed": "El Pokémon se escapó. Inténtalo de nuevo.",
     "alreadyCaptured": "En tu colección",
     "resync": "Actualizar datos"
@@ -142,8 +143,15 @@
     "deleteAria": "Eliminar {{name}}",
     "deleteConfirmTitle": "¿Eliminar esta entrada?",
     "deleteConfirmBody": "Esto quitará a {{name}} de tu colección. Esta acción no se puede deshacer.",
+    "release": "Liberar",
+    "releaseAria": "Liberar a {{name}} a cambio de créditos",
+    "releaseConfirmTitle": "¿Liberar a este Pokémon?",
+    "releaseConfirmBody": "Deja libre a {{name}} y la Poké Mart te pagará {{amount}} créditos por la entrada.",
+    "releaseConfirmVersusDelete": "No es lo mismo que Eliminar: eliminar una entrada la quita y no te paga nada. En ambos casos sale de tu colección, y ninguna acción se puede deshacer.",
+    "releaseAction": "Liberar por {{amount}}",
     "updated": "Entrada actualizada.",
     "deleted": "Entrada eliminada.",
+    "released": "Liberaste a {{name}} — ganaste {{amount}} créditos.",
     "fieldMax": "{{count}}/{{max}} caracteres."
   },
   "economy": {
@@ -152,6 +160,18 @@
     "owned": "Tienes {{count}}",
     "walletTitle": "Tu cartera — abrir la tienda",
     "walletAria": "Cartera: {{credits}} créditos, {{balls}} balls. Abrir la tienda.",
+    "walletTitleDaily": "Tu cartera — bono diario disponible",
+    "walletAriaDaily": "Cartera: {{credits}} créditos, {{balls}} balls. Bono diario disponible. Abrir la tienda.",
+    "safetyNet": "Te quedaste sin balls y sin créditos — aquí tienes {{count}} Poké Balls para seguir jugando.",
+    "daily": {
+      "title": "Bono diario",
+      "description": "{{amount}} créditos gratis cada 24 horas.",
+      "claim": "Reclamar {{amount}} créditos",
+      "claiming": "Reclamando…",
+      "claimedLabel": "Reclamado",
+      "nextIn": "Próximo bono en {{time}}",
+      "claimed": "¡Bono diario reclamado: {{amount}} créditos!"
+    },
     "ballName": {
       "poke": "Poké Ball",
       "great": "Super Ball",
@@ -181,6 +201,7 @@
     "idleHint": "Inserta {{amount}} créditos y tira.",
     "needCredits": "Necesitas {{amount}} créditos para jugar.",
     "goToShop": "Recarga en la tienda",
+    "dailyReady": "Tu bono diario te está esperando ahí.",
     "payout": "Ganaste {{amount}} créditos",
     "spent": "Gastaste {{amount}} créditos",
     "payoutShort": "+{{amount}}",
