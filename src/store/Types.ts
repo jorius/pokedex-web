@@ -60,6 +60,8 @@ export interface LocalPokemon {
   region: string | null
   classificationTag: string | null
   abilities: PokemonAbility[]
+  /** When the caller added this entry to their collection — the "captured on" date. */
+  capturedAt: string
   createdAt: string
   updatedAt: string
 }

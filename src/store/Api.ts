@@ -159,6 +159,18 @@ export const api = createApi({
       providesTags: ['Local'],
     }),
 
+    /**
+     * Captured check for one pokemon. 404 is the normal "not in your collection" answer, not a
+     * failure — callers read `error.status === 404` as a state, never as something to report.
+     * Tagged `Local`, so a successful sync flips it to captured without a manual refetch.
+     */
+    getLocalByPokeApiId: builder.query<LocalPokemon, number>({
+      query: (pokeApiId) => `/api/pokemons/local/by-poke-api-id/${String(pokeApiId)}`,
+      transformResponse: (response: ApiEnvelope<LocalPokemon>): LocalPokemon => response.data as LocalPokemon,
+      transformErrorResponse: toApiError,
+      providesTags: ['Local'],
+    }),
+
     syncById: builder.mutation<LocalPokemon, number>({
       query: (id) => ({ url: `/api/pokemons/${id}/sync`, method: 'POST' }),
       transformResponse: (response: ApiEnvelope<LocalPokemon>): LocalPokemon => response.data as LocalPokemon,
@@ -254,6 +266,7 @@ export const {
   useGetPokemonByIdQuery,
   useGetPokemonByNameQuery,
   useGetLocalQuery,
+  useGetLocalByPokeApiIdQuery,
   useSyncByIdMutation,
   useUpdateLocalMutation,
   useDeleteLocalMutation,

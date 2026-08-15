@@ -5,20 +5,28 @@ import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate, useParams } from 'react-router'
 
 // Hooks
+import { useCaptureSequence } from '../hooks/UseCaptureSequence'
 import { useDocumentTitle } from '../hooks/UseDocumentTitle'
+import { useTheme } from '../hooks/UseTheme'
 import { useToast } from '../hooks/UseToast'
 
 // Lib
 import { resolveApiErrorMessage } from '../lib/ApiErrorMessage'
+import { cn } from '../lib/Cn'
 import { formatPokedexNumber, formatTenths, humanizeSlug, toDisplayName } from '../lib/Format'
 
 // Store
-import { useGetPokemonByIdQuery, useGetPokemonByNameQuery, useSyncByIdMutation } from '../store/Api'
+import { useGetLocalByPokeApiIdQuery, useGetPokemonByIdQuery, useGetPokemonByNameQuery, useSyncByIdMutation } from '../store/Api'
 import type { ApiErrorShape } from '../store/Api'
 import { useAppSelector } from '../store/Hooks'
 import type { PokemonDetail } from '../store/Types'
 
 // Components
+import { PokeballMark } from '../components/brand/PokeballMark'
+import { THEME_POKEBALL } from '../components/brand/PokeballPalettes'
+import { CaptureAnimation } from '../components/capture/CaptureAnimation'
+import { captureSpriteClassName } from '../components/capture/CaptureSprite'
+import { CapturedBadge } from '../components/capture/CapturedBadge'
 import { EvolutionChain } from '../components/pokemon/EvolutionChain'
 import { StatBars } from '../components/pokemon/StatBars'
 import { Badge } from '../components/ui/Badge'
@@ -32,8 +40,12 @@ import { Skeleton } from '../components/ui/Skeleton'
  * description) while the desktop layout puts the dossier column beside the artwork and drops the
  * description underneath the artwork, matching its width. Row gap is wider than the column gap:
  * the action button hangs off the artwork card's bottom edge and needs the clearance.
+ *
+ * `auto 1fr` rows matter: the dossier column spans both rows, and without a flexible second track
+ * its extra height would be split between them — pushing the description away from the artwork on
+ * long pages. The flexible row absorbs it instead, so the description always sits right below.
  */
-const DETAIL_GRID_CLASS = 'grid items-start gap-x-8 gap-y-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'
+const DETAIL_GRID_CLASS = 'grid items-start gap-x-8 gap-y-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:grid-rows-[auto_1fr]'
 
 const ARTWORK_CELL_CLASS = 'relative lg:col-start-1 lg:row-start-1'
 
@@ -41,8 +53,9 @@ const DOSSIER_CELL_CLASS = 'flex flex-col gap-7 lg:col-start-2 lg:row-span-2 lg:
 
 const DESCRIPTION_CELL_CLASS = 'p-5 lg:col-start-1 lg:row-start-2'
 
-/** The sprite well is padded top-heavy so the name plate overlays empty space, not the creature. */
-const ARTWORK_WELL_CLASS = 'flex aspect-square items-center justify-center overflow-hidden rounded-[calc(var(--radius)-1px)] bg-muted px-6 pb-12 pt-20'
+/** The sprite well is padded top-heavy so the name plate overlays empty space, not the creature.
+ * `relative` anchors the capture stage, which covers exactly this box. */
+const ARTWORK_WELL_CLASS = 'relative flex aspect-square items-center justify-center overflow-hidden rounded-[calc(var(--radius)-1px)] bg-muted px-6 pb-12 pt-20'
 
 const NAME_PLATE_CLASS = 'min-w-0 flex-1 rounded-md border bg-card/90 px-3 py-2 shadow-sm backdrop-blur-sm'
 
@@ -107,24 +120,60 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
+  const { theme } = useTheme()
   const isAuthenticated = useAppSelector((state) => state.auth.accessToken !== null)
   const { showToast } = useToast()
   const [syncById, { isLoading: isSyncing }] = useSyncByIdMutation()
+  // The captured check answers 404 when this pokemon is not in the caller's collection — that is
+  // a STATE, not a failure, so only `data` is read and nothing about it is ever toasted. The
+  // endpoint provides the 'Local' tag, so a successful catch flips it without a manual refetch.
+  const { data: capturedEntry } = useGetLocalByPokeApiIdQuery(detail.pokeApiId, { skip: !isAuthenticated })
 
-  // The sync outcome is reported by the toast layer, so the mutation's isSuccess/error are no
-  // longer read here — and neither is reset(), which only existed to clear the stale inline note
-  // when the evolution chain swapped the pokemon under a mounted component.
-  function handleSync(): void {
+  /** A broken-out pokemon is a story beat: prefer the server's account of it, fall back to flavor. */
+  function resolveCatchFailureMessage(error: unknown): string {
+    const apiError = error as ApiErrorShape
+    if (typeof apiError.status === 'string') return t('common.error.network')
+    return apiError.msg ?? t('detail.catchFailed')
+  }
+
+  const capture = useCaptureSequence({
+    onCapture: () => syncById(detail.pokeApiId).unwrap(),
+    onSuccess: () => { showToast({ message: t('detail.catchSuccess', { name: toDisplayName(detail.name) }), variant: 'success' }) },
+    onFailure: (error: unknown) => { showToast({ message: resolveCatchFailureMessage(error), variant: 'error' }) },
+  })
+
+  // The captured state is held back until the throw resolves: the invalidated query can answer
+  // mid-wobble, and the badge showing up before the ball stops would give the outcome away.
+  const capturedAt = capture.isCatching ? undefined : capturedEntry?.capturedAt
+  const isCaptured = capturedAt !== undefined
+  const spriteClassName = captureSpriteClassName(capture.phase)
+
+  // Re-syncing an entry you already own refreshes its base data — no throw, just the sync toast.
+  function handleResync(): void {
+    void syncById(detail.pokeApiId)
+      .unwrap()
+      .then(() => { showToast({ message: t('detail.syncSuccess'), variant: 'success' }) })
+      .catch((error: unknown) => { showToast({ message: resolveApiErrorMessage(error as ApiErrorShape, t), variant: 'error' }) })
+  }
+
+  function handleAction(): void {
     if (!isAuthenticated) {
       // Being bounced to a login form you did not ask for is disorienting — say why.
       showToast({ message: t('detail.loginToSync'), variant: 'info' })
       navigate('/login', { state: { from: location } })
       return
     }
-    void syncById(detail.pokeApiId)
-      .unwrap()
-      .then(() => { showToast({ message: t('detail.syncSuccess'), variant: 'success' }) })
-      .catch((error: unknown) => { showToast({ message: resolveApiErrorMessage(error as ApiErrorShape, t), variant: 'error' }) })
+    if (isCaptured) {
+      handleResync()
+      return
+    }
+    capture.start()
+  }
+
+  function actionLabel(): string {
+    if (capture.isCatching) return t('detail.catching')
+    if (isCaptured) return t('detail.resync')
+    return t('detail.catch')
   }
 
   return (
@@ -132,10 +181,17 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
       <Card className={ARTWORK_CELL_CLASS}>
         <div className={ARTWORK_WELL_CLASS}>
           {detail.spriteUrl !== null ? (
-            <img src={detail.spriteUrl} alt={detail.name} className="size-full object-contain [image-rendering:pixelated] drop-shadow-lg" />
+            // The opacity transition is what brings the sprite back after a capture: the phase
+            // classes only take it away, and a hard pop-in at the end of the throw reads as a bug.
+            <img
+              src={detail.spriteUrl}
+              alt={detail.name}
+              className={cn('size-full object-contain [image-rendering:pixelated] drop-shadow-lg transition-opacity duration-300', spriteClassName)}
+            />
           ) : (
-            <span aria-hidden className="font-display text-8xl text-muted-foreground/50">?</span>
+            <span aria-hidden className={cn('font-display text-8xl text-muted-foreground/50', spriteClassName)}>?</span>
           )}
+          <CaptureAnimation phase={capture.phase} />
         </div>
 
         {/* Name plate riding the top of the artwork, with the entry number outside its right edge. */}
@@ -148,13 +204,25 @@ function DetailContent({ detail }: DetailContentProps): JSX.Element {
               {formatPokedexNumber(detail.pokeApiId)}
             </span>
           </div>
+          {capturedAt !== undefined && <CapturedBadge capturedAt={capturedAt} />}
         </div>
 
         {/* The action straddles the card's bottom edge — the one control the page is really about. */}
         <div className="absolute inset-x-0 bottom-0 flex translate-y-1/2 justify-center px-4">
-          <Button size="lg" className="shadow-lg" disabled={isSyncing} onClick={handleSync}>
-            <RefreshCw aria-hidden className={isSyncing ? 'animate-spin' : undefined} />
-            {t('detail.sync')}
+          <Button
+            size="lg"
+            variant={isCaptured ? 'secondary' : 'default'}
+            className="shadow-lg"
+            disabled={capture.isCatching || isSyncing}
+            onClick={handleAction}
+          >
+            {isCaptured ? (
+              <RefreshCw aria-hidden className={isSyncing ? 'animate-spin' : undefined} />
+            ) : (
+              // The button throws the same ball the animation does — the active theme's.
+              <PokeballMark variant={THEME_POKEBALL[theme]} className={capture.isCatching ? 'animate-spin' : undefined} />
+            )}
+            {actionLabel()}
           </Button>
         </div>
       </Card>
@@ -271,7 +339,10 @@ export function DetailPage(): JSX.Element {
 
     if (isLoading || data === undefined) return <DetailSkeleton />
 
-    return <DetailContent detail={data} />
+    // Keyed by entry: following an evolution card mid-throw swaps the pokemon under a mounted
+    // component, and remounting is what guarantees the capture sequence starts clean (timers
+    // cleared, phase back to idle) instead of finishing a throw aimed at the previous one.
+    return <DetailContent key={data.pokeApiId} detail={data} />
   }
 
   return (

@@ -1,0 +1,391 @@
+/*
+ * Capture throw keyframes. These live beside the component instead of in src/index.css on
+ * purpose: the sequence is the only thing that uses them, and keeping the names out of the
+ * global stylesheet keeps the shared file to tokens + the toast motion it already owns.
+ *
+ * Layout contract: `.capture-stage` covers the artwork well (position: absolute, inset 0) and
+ * never takes pointer events, so the page stays fully usable mid-throw. The ball is centred on
+ * the sprite; `--capture-floor` is how far it drops to the "card floor", expressed as a share of
+ * the ball's own size and stepped up with the well so it never lands outside a narrow card.
+ */
+
+.capture-stage {
+  /* Floor distances are tuned to the SHORTEST well each range can produce, so the ball always
+     lands inside the card: narrow single-column cards below sm, a full-width card between sm and
+     lg, and the narrower artwork column again once the two-column grid kicks in. */
+  --capture-floor: 170%;
+  --capture-ball: 60px;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+@media (min-width: 640px) {
+  .capture-stage {
+    --capture-floor: 250%;
+    --capture-ball: 72px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .capture-stage {
+    --capture-floor: 190%;
+  }
+}
+
+.capture-anchor {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Position/rotation of the whole ball. Scale and break-apart live on the children so the two
+   never fight over `transform`. */
+.capture-ball {
+  position: relative;
+  width: var(--capture-ball);
+  height: var(--capture-ball);
+}
+
+.capture-ball-body {
+  position: absolute;
+  inset: 0;
+  filter: drop-shadow(0 6px 10px rgb(0 0 0 / 0.35));
+}
+
+.capture-ball-body > svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* 1 — the throw: an arc up and in from below the card, spinning twice. */
+.capture-ball--throw {
+  animation: capture-throw 600ms cubic-bezier(0.22, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes capture-throw {
+  0% {
+    opacity: 0;
+    transform: translate(-125%, 340%) rotate(0deg) scale(0.5);
+  }
+  12% {
+    opacity: 1;
+  }
+  55% {
+    transform: translate(-26%, -82%) rotate(-400deg) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(-720deg) scale(1);
+  }
+}
+
+/* 2 — the absorb: the ball drinks the sprite in and swells on the beam. */
+.capture-ball--absorb .capture-ball-body {
+  animation: capture-swell 250ms ease-out;
+}
+
+@keyframes capture-swell {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.capture-sprite--absorb {
+  animation: capture-sprite-absorb 250ms ease-in forwards;
+}
+
+@keyframes capture-sprite-absorb {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1) saturate(1);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.05);
+    filter: brightness(2.6) saturate(0.15);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.06);
+    filter: brightness(3) saturate(0);
+  }
+}
+
+/* The sprite stays gone for every phase after the absorb until the ball breaks open. */
+.capture-sprite--held {
+  opacity: 0;
+}
+
+/* 3 — the drop and the three shakes. */
+.capture-ball--wobble {
+  animation: capture-wobble 1200ms cubic-bezier(0.3, 0.1, 0.3, 1) forwards;
+}
+
+@keyframes capture-wobble {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  15% {
+    transform: translateY(var(--capture-floor)) rotate(0deg);
+  }
+  21% {
+    transform: translateY(calc(var(--capture-floor) - 16%)) rotate(0deg);
+  }
+  27% {
+    transform: translateY(var(--capture-floor)) rotate(0deg);
+  }
+  40% {
+    transform: translateY(var(--capture-floor)) rotate(-19deg);
+  }
+  52% {
+    transform: translateY(var(--capture-floor)) rotate(16deg);
+  }
+  64% {
+    transform: translateY(var(--capture-floor)) rotate(-12deg);
+  }
+  76% {
+    transform: translateY(var(--capture-floor)) rotate(8deg);
+  }
+  88% {
+    transform: translateY(var(--capture-floor)) rotate(-4deg);
+  }
+  100% {
+    transform: translateY(var(--capture-floor)) rotate(0deg);
+  }
+}
+
+/* 3b — the request outlived the wobble: a slow sway that reads as "still deciding". */
+.capture-ball--holding {
+  animation: capture-hold 1600ms ease-in-out infinite;
+}
+
+@keyframes capture-hold {
+  0%,
+  100% {
+    transform: translateY(var(--capture-floor)) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(var(--capture-floor)) rotate(3deg);
+  }
+}
+
+/* 4 — caught: the ball settles with a click, a ring pushes out, sparks fly. */
+.capture-ball--success {
+  transform: translateY(var(--capture-floor));
+}
+
+.capture-ball--success .capture-ball-body {
+  animation: capture-settle 520ms cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+@keyframes capture-settle {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.16);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.capture-burst {
+  position: absolute;
+  inset: -20%;
+  border-radius: 9999px;
+  border: 3px solid var(--accent);
+  opacity: 0;
+  animation: capture-burst 620ms ease-out forwards;
+}
+
+@keyframes capture-burst {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.35);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+.capture-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 9999px;
+  background: var(--accent);
+  opacity: 0;
+  animation: capture-spark 700ms ease-out forwards;
+}
+
+@keyframes capture-spark {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--capture-angle)) translateY(-4px) scale(0.4);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--capture-angle)) translateY(-70px) scale(1);
+  }
+}
+
+/* 5 — broke free: the ball splits and the sprite shakes itself back into place. */
+.capture-ball--fail {
+  transform: translateY(var(--capture-floor));
+}
+
+.capture-ball-half {
+  position: absolute;
+  inset: 0;
+}
+
+.capture-ball-half > svg {
+  width: 100%;
+  height: 100%;
+}
+
+.capture-ball-half--top {
+  clip-path: inset(0 0 50% 0);
+  animation: capture-break-top 520ms ease-out forwards;
+}
+
+.capture-ball-half--bottom {
+  clip-path: inset(50% 0 0 0);
+  animation: capture-break-bottom 520ms ease-out forwards;
+}
+
+@keyframes capture-break-top {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-34%, -78%) rotate(-42deg);
+  }
+}
+
+@keyframes capture-break-bottom {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(30%, 52%) rotate(34deg);
+  }
+}
+
+.capture-sprite--return {
+  animation: capture-sprite-return 620ms ease-out forwards;
+}
+
+@keyframes capture-sprite-return {
+  0% {
+    opacity: 0;
+    transform: scale(0.08);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.08) translateX(0);
+  }
+  45% {
+    transform: scale(1) translateX(-4%);
+  }
+  60% {
+    transform: translateX(4%);
+  }
+  72% {
+    transform: translateX(-3%);
+  }
+  84% {
+    transform: translateX(2%);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Bloom behind the ball on the two flash beats. */
+.capture-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgb(255 255 255 / 0.85), transparent 55%);
+  opacity: 0;
+}
+
+.capture-flash--absorb {
+  animation: capture-flash 300ms ease-out forwards;
+}
+
+.capture-flash--success {
+  animation: capture-flash 480ms ease-out forwards;
+}
+
+@keyframes capture-flash {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The captured badge arriving after a successful throw (and on load for an entry you already own). */
+.capture-badge-in {
+  animation: capture-badge-in 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes capture-badge-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Belt and braces: the sequence already skips every phase under reduced motion (the hook never
+ * leaves 'idle', so nothing here even mounts). This kills any residual motion if a class is ever
+ * rendered outside that path.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .capture-stage *,
+  .capture-badge-in,
+  .capture-sprite--absorb,
+  .capture-sprite--return {
+    animation: none !important;
+  }
+
+  .capture-sprite--absorb,
+  .capture-sprite--held {
+    opacity: 1;
+  }
+}
