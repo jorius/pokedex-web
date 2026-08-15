@@ -100,11 +100,13 @@
     "classificationTag": "Tag",
     "description": "Notes",
     "editTitle": "Edit entry",
+    "editAria": "Edit {{name}}",
+    "deleteAria": "Delete {{name}}",
     "deleteConfirmTitle": "Delete this entry?",
-    "deleteConfirmBody": "This will remove it from your collection. This can't be undone.",
+    "deleteConfirmBody": "This will remove {{name}} from your collection. This can't be undone.",
     "updated": "Entry updated.",
     "deleted": "Entry deleted.",
-    "fieldMax": "Maximum {{count}} characters."
+    "fieldMax": "{{count}}/{{max}} characters."
   },
   "stats": {
     "hp": "HP",

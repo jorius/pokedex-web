@@ -100,11 +100,13 @@
     "classificationTag": "Etiqueta",
     "description": "Notas",
     "editTitle": "Editar entrada",
+    "editAria": "Editar {{name}}",
+    "deleteAria": "Eliminar {{name}}",
     "deleteConfirmTitle": "¿Eliminar esta entrada?",
-    "deleteConfirmBody": "Esto la quitará de tu colección. Esta acción no se puede deshacer.",
+    "deleteConfirmBody": "Esto quitará a {{name}} de tu colección. Esta acción no se puede deshacer.",
     "updated": "Entrada actualizada.",
     "deleted": "Entrada eliminada.",
-    "fieldMax": "Máximo {{count}} caracteres."
+    "fieldMax": "{{count}}/{{max}} caracteres."
   },
   "stats": {
     "hp": "PS",
