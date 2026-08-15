@@ -1,11 +1,12 @@
 // External
 import { Coins, Loader2 } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import type { JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
 // Hooks
+import { useSpinLockedValue } from '../../hooks/UseSpinLockedValue'
 import { useToast } from '../../hooks/UseToast'
 
 // Lib
@@ -14,7 +15,9 @@ import { cn } from '../../lib/Cn'
 
 // Store
 import type { ApiErrorShape } from '../../store/Api'
+import { useAppDispatch } from '../../store/Hooks'
 import type { SpinResult } from '../../store/Types'
+import { spinLockEngaged, spinLockReleased } from '../../store/UiSlice'
 
 // Styles
 import './SlotsMachine.css'
@@ -46,29 +49,40 @@ interface SlotMachineProps {
  * meter would jump by the payout while the drums were still turning and spoil its own reveal. It is
  * pinned at the pre-spin figure from the click until the last drum lands, then released, so the
  * number ticks over on exactly the beat the result appears.
+ *
+ * The hold is a STORE FLAG (`ui.isSpinLocked`), not local state, because this meter is not the only
+ * thing rendering the balance: the header's WalletChip subscribes to the same wallet query and used
+ * to give the outcome away about a second early. Engaging the lock here pins both at once; see
+ * UiSlice.ts and useSpinLockedValue.
  */
 export function SlotMachine({ credits }: SlotMachineProps): JSX.Element {
   const { t, i18n } = useTranslation()
   const { showToast } = useToast()
+  const dispatch = useAppDispatch()
   const [spinSlots] = useSpinSlotsMutation()
-  const [frozenCredits, setFrozenCredits] = useState<number | null>(null)
 
   const handleSpin = useCallback((): Promise<SpinResult> => spinSlots().unwrap(), [spinSlots])
 
   const handleRevealed = useCallback((spin: SpinResult): void => {
-    setFrozenCredits(null)
+    dispatch(spinLockReleased())
     showToast({
       message: spin.payout > 0
         ? t(`slots.toast.${spin.outcome}`, { amount: formatCredits(spin.payout, i18n.language) })
         : t('slots.toast.none'),
       variant: spin.outcome === 'none' ? 'info' : 'success',
     })
-  }, [showToast, t, i18n.language])
+  }, [dispatch, showToast, t, i18n.language])
 
   const handleError = useCallback((error: unknown): void => {
-    setFrozenCredits(null)
+    dispatch(spinLockReleased())
     showToast({ message: resolveApiErrorMessage(error as ApiErrorShape, t), variant: 'error' })
-  }, [showToast, t])
+  }, [dispatch, showToast, t])
+
+  // Leaving the Game Corner mid-spin unmounts the only component that would ever release the lock,
+  // which would leave the header's chip pinned for the rest of the session.
+  useEffect(() => {
+    return (): void => { dispatch(spinLockReleased()) }
+  }, [dispatch])
 
   const { reels, spinningReels, result, isSpinning, start } = useSlotSequence({
     onSpin: handleSpin,
@@ -76,12 +90,14 @@ export function SlotMachine({ credits }: SlotMachineProps): JSX.Element {
     onError: handleError,
   })
 
-  const shownCredits = frozenCredits ?? credits
+  const shownCredits = useSpinLockedValue(credits)
   const canAfford = credits >= SPIN_COST
   const isJackpot = result?.outcome === 'jackpot'
 
   function handleClick(): void {
-    setFrozenCredits(credits)
+    // Engage BEFORE the mutation fires: the wallet query can be invalidated the moment the server
+    // answers, and a lock that arrives after that has already let the payout through.
+    dispatch(spinLockEngaged())
     start()
   }
 

@@ -4,6 +4,9 @@ import type { JSX } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
+// Hooks
+import { useSpinLockedValue } from '../../hooks/UseSpinLockedValue'
+
 // Lib
 import { cn } from '../../lib/Cn'
 
@@ -22,14 +25,21 @@ import { formatCredits, totalBalls } from './EconomyFormat'
  * Sizing is deliberate: h-9 matches the header's Select triggers so the chip sits on the same
  * baseline as the controls beside it, and tabular-nums stops the pill resizing every time a
  * purchase or a spin changes the balance.
+ *
+ * THE CHIP MUST NOT SCOOP THE SLOT MACHINE. The spin mutation invalidates the 'Wallet' tag when
+ * the server answers, roughly a second before the third reel lands, so left alone this chip would
+ * post the payout while the drums were still turning. `useSpinLockedValue` holds whatever the
+ * wallet said at the moment the spin was paid for until the cabinet has finished its reveal; see
+ * `ui.isSpinLocked` in UiSlice.ts for the whole mechanism.
  */
 export function WalletChip(): JSX.Element | null {
   const { t, i18n } = useTranslation()
-  const { data: wallet, isLoading } = useGetWalletQuery()
+  const { data: liveWallet, isLoading } = useGetWalletQuery()
+  const wallet = useSpinLockedValue(liveWallet)
 
   // No skeleton here: the header is the one place a placeholder would shift the whole layout on
   // every boot. The chip simply appears once the wallet lands.
-  if (isLoading || wallet === undefined) return null
+  if ((isLoading && wallet === undefined) || wallet === undefined) return null
 
   const credits = formatCredits(wallet.credits, i18n.language)
   const balls = formatCredits(totalBalls(wallet), i18n.language)
