@@ -14,24 +14,30 @@ export function SelectGroup(props: ComponentPropsWithRef<typeof SelectPrimitive.
   return <SelectPrimitive.Group {...props} />
 }
 
-export function SelectValue(props: ComponentPropsWithRef<typeof SelectPrimitive.Value>): JSX.Element {
-  return <SelectPrimitive.Value {...props} />
+export function SelectValue({ className, ...props }: ComponentPropsWithRef<typeof SelectPrimitive.Value>): JSX.Element {
+  // min-w-0 lets the value shrink inside its flex row so truncate can ellipsize instead of
+  // pushing the trigger (or the whole header row) wider when a locale has longer labels.
+  return <SelectPrimitive.Value className={cn('min-w-0 truncate', className)} {...props} />
 }
 
 export function SelectTrigger({ className, children, ...props }: ComponentPropsWithRef<typeof SelectPrimitive.Trigger>): JSX.Element {
+  // Deliberately NO `[&>span]:line-clamp-1` here: line-clamp forces `display: -webkit-box`
+  // onto every direct span child with higher specificity than `.flex`, which silently broke the
+  // switchers' icon+label rows (icon stacked above the text). Overflow is handled by
+  // SelectValue's own `truncate` instead.
   return (
     <SelectPrimitive.Trigger
       className={cn(
         'flex h-9 w-full items-center justify-between gap-2 whitespace-nowrap rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground shadow-sm',
         'outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-        'disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 cursor-pointer transition-colors',
+        'disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer transition-colors',
         className,
       )}
       {...props}
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDown className="size-4 opacity-60" />
+        <ChevronDown className="size-4 shrink-0 opacity-60" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   )

@@ -20,6 +20,8 @@ import { getRefreshToken } from '../../store/RefreshTokenStorage'
 import { THEMES, isTheme } from '../../themes/ThemeContext'
 
 // Components
+import { PokeballMark } from '../brand/PokeballMark'
+import { THEME_POKEBALL } from '../brand/PokeballPalettes'
 import { BackendSwitcher } from './BackendSwitcher'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { Button } from '../ui/Button'
@@ -64,13 +66,12 @@ export function Header(): JSX.Element {
   return (
     <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
       <div aria-hidden className="h-1 bg-accent" />
-      <div className="mx-auto flex h-14 w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-4">
-        <div className="flex items-center gap-6">
-          <span className="flex items-center gap-2.5">
-            <span aria-hidden className="relative inline-flex size-5 items-center justify-center rounded-full border-2 border-foreground bg-primary">
-              <span className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 bg-foreground" />
-              <span className="relative size-1.5 rounded-full border border-foreground bg-card" />
-            </span>
+      {/* min-h + py instead of a fixed h-14: when longer locale strings (ES) force the controls
+          onto a second line the header must grow — a fixed height made the rows collide. */}
+      <div className="mx-auto flex min-h-14 w-full max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-1">
+          <span className="flex shrink-0 items-center gap-2.5">
+            <PokeballMark variant={THEME_POKEBALL[theme]} size={22} />
             <span className="font-display text-xl font-bold tracking-wide text-foreground">{t('common.appName')}</span>
           </span>
           <nav className="flex items-center gap-4">
@@ -82,13 +83,15 @@ export function Header(): JSX.Element {
             </NavLink>
           </nav>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        {/* ml-auto (not parent justify-between) keeps the controls right-aligned even when flex-wrap
+            drops them onto their own line. */}
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
           <BackendSwitcher />
           <LanguageSwitcher />
           <Select value={theme} onValueChange={(value): void => { if (isTheme(value)) setTheme(value) }}>
-            <SelectTrigger aria-label={t('theme.label')} className="w-36">
-              <span className="flex items-center gap-2">
-                <Palette className="size-4 text-muted-foreground" />
+            <SelectTrigger aria-label={t('theme.label')} title={t(`theme.${THEME_I18N_KEYS[theme]}`)} className="w-40">
+              <span className="flex min-w-0 items-center gap-2">
+                <Palette aria-hidden className="size-4 shrink-0 text-muted-foreground" />
                 <SelectValue />
               </span>
             </SelectTrigger>
@@ -102,7 +105,9 @@ export function Header(): JSX.Element {
           </Select>
           {user ? (
             <div className="flex items-center gap-2">
-              <span className="hidden text-sm text-muted-foreground sm:inline">{t('auth.loggedInAs', { email: user.email })}</span>
+              <span title={t('auth.loggedInAs', { email: user.email })} className="hidden max-w-48 truncate text-sm text-muted-foreground sm:inline-block">
+                {t('auth.loggedInAs', { email: user.email })}
+              </span>
               <Button variant="ghost" size="sm" disabled={isLoggingOut} onClick={(): void => { void handleLogout() }}>
                 {isLoggingOut ? <Loader2 className="animate-spin" aria-hidden /> : <LogOut aria-hidden />}
                 {t('nav.logout')}

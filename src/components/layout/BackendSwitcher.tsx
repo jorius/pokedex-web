@@ -88,9 +88,9 @@ export function BackendSwitcher(): JSX.Element {
   return (
     <div className="relative">
       <Select value={target} onValueChange={handleTargetChange}>
-        <SelectTrigger aria-label={t('backend.label')} className="w-40">
-          <span className="flex items-center gap-2">
-            <Server className="size-4 text-muted-foreground" />
+        <SelectTrigger aria-label={t('backend.label')} title={t(`backend.${target}`)} className="w-40">
+          <span className="flex min-w-0 items-center gap-2">
+            <Server aria-hidden className="size-4 shrink-0 text-muted-foreground" />
             <SelectValue />
           </span>
         </SelectTrigger>
