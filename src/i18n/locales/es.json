@@ -159,9 +159,9 @@
     "catchRate": "Tasa de captura",
     "owned": "Tienes {{count}}",
     "walletTitle": "Tu cartera — abrir la tienda",
-    "walletAria": "Cartera: {{credits}} créditos, {{balls}} balls. Abrir la tienda.",
+    "walletAria": "Cartera: {{credits}} créditos, {{balls}} Poké Balls. Abrir la tienda.",
     "walletTitleDaily": "Tu cartera — bono diario disponible",
-    "walletAriaDaily": "Cartera: {{credits}} créditos, {{balls}} balls. Bono diario disponible. Abrir la tienda.",
+    "walletAriaDaily": "Cartera: {{credits}} créditos, {{balls}} Poké Balls. Bono diario disponible. Abrir la tienda.",
     "safetyNet": "Te quedaste sin balls y sin créditos — aquí tienes {{count}} Poké Balls para seguir jugando.",
     "daily": {
       "title": "Bono diario",

@@ -8,7 +8,7 @@ import { useToast } from '../../hooks/UseToast'
 
 // Lib
 import { resolveApiErrorMessage } from '../../lib/ApiErrorMessage'
-import { humanizeSlug } from '../../lib/Format'
+import { toDisplayName } from '../../lib/Format'
 
 // Store
 import { useDeleteLocalMutation } from '../../store/Api'
@@ -30,7 +30,7 @@ export function DeleteConfirmDialog({ record, open, onOpenChange, onDeleted }: D
   const { t } = useTranslation()
   const { showToast } = useToast()
   const [deleteLocal, { isLoading }] = useDeleteLocalMutation()
-  const displayName = record.localizedName ?? humanizeSlug(record.name)
+  const displayName = record.localizedName ?? toDisplayName(record.name)
 
   async function handleDelete(): Promise<void> {
     try {
