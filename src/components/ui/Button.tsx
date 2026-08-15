@@ -24,25 +24,28 @@ const buttonVariants = cva(
         destructiveGhost: 'text-destructive hover:bg-destructive/10',
       },
       /**
-       * TOUCH FIRST, DESKTOP AT `lg`. Every size is one step taller below 1024px and drops to its
-       * original desktop height from `lg` up, so a phone and a tablet get targets a thumb can
-       * actually hit while the 1440 layout is byte-for-byte what it was. `lg` (not a
-       * `pointer: coarse` query) is the breakpoint because it is deterministic: a touchscreen
-       * laptop or a desktop browser in device-emulation would otherwise silently pick a different
-       * geometry than the one these layouts were measured against.
+       * TOUCH FIRST, DESKTOP AT `xl`. Every size is one step taller below 1280px and drops to its
+       * original desktop height from `xl` up, so phones and both tablet orientations get targets a
+       * thumb can actually hit while the 1440 layout is byte-for-byte what it was.
+       *
+       * `xl` is the same line the header switches on, so the app has ONE breakpoint story: below
+       * it, touch layout and the nav drawer; at and above it, the desktop bar and desktop density.
+       * It is deliberately a width query rather than `pointer: coarse` — a width is deterministic,
+       * and it is what these layouts were actually measured against. It also has to reach past
+       * 1024, because a tablet in landscape is exactly that wide and is still all thumbs.
        *
        * `icon` matters most: size-9 is 36px, and it is what the pagination arrows, the search
        * clear button and the shop's +/- steppers are built from — the smallest controls in the app.
        */
       size: {
-        // `sm` reaches the full 40px below lg rather than stopping at 36: it is what the
+        // `sm` reaches the full 40px below xl rather than stopping at 36: it is what the
         // collection's Edit/Delete, the detail Back and the browse-mode segments are built from,
-        // and those are primary actions on their own surfaces. Below lg the sizes are told apart
-        // by padding and text size instead of height; above lg they are exactly as they were.
-        sm: 'h-10 px-3 text-xs lg:h-8',
-        default: 'h-10 px-4 lg:h-9',
-        lg: 'h-11 px-6 lg:h-10',
-        icon: 'size-10 lg:size-9',
+        // and those are primary actions on their own surfaces. Below xl the sizes are told apart
+        // by padding and text size instead of height; above xl they are exactly as they were.
+        sm: 'h-10 px-3 text-xs xl:h-8',
+        default: 'h-10 px-4 xl:h-9',
+        lg: 'h-11 px-6 xl:h-10',
+        icon: 'size-10 xl:size-9',
       },
     },
     defaultVariants: {

@@ -37,8 +37,8 @@ export function SelectTrigger({ className, children, showChevron = true, ...prop
   return (
     <SelectPrimitive.Trigger
       className={cn(
-        // 40px below lg for touch, back to the desktop h-9 from lg up — same contract as Button.
-        'flex h-10 w-full items-center justify-between gap-2 whitespace-nowrap rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground shadow-sm lg:h-9',
+        // 40px below xl for touch, back to the desktop h-9 from xl up — same contract as Button.
+        'flex h-10 w-full items-center justify-between gap-2 whitespace-nowrap rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground shadow-sm xl:h-9',
         'outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         'disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer transition-colors',
         className,
@@ -91,9 +91,9 @@ export function SelectItem({ className, children, ...props }: ComponentPropsWith
   return (
     <SelectPrimitive.Item
       className={cn(
-        // Roomier rows below lg: the theme list is nine entries deep and is scrolled and tapped
+        // Roomier rows below xl: the theme list is nine entries deep and is scrolled and tapped
         // with a thumb on a phone.
-        'relative flex w-full cursor-pointer select-none items-center rounded-sm py-2.5 pl-2 pr-8 text-sm outline-none lg:py-1.5',
+        'relative flex w-full cursor-pointer select-none items-center rounded-sm py-2.5 pl-2 pr-8 text-sm outline-none xl:py-1.5',
         'focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         className,
       )}

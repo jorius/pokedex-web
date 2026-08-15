@@ -178,7 +178,7 @@ export function SlotMachine({ credits }: SlotMachineProps): JSX.Element {
             <p role="status" className="text-center text-xs text-destructive sm:text-right">
               {t('slots.needCredits', { amount: formatCredits(SPIN_COST, i18n.language) })}{' '}
               {/* The only way out of an empty wallet, so it gets a real tap box on a phone. */}
-              <Link to="/shop" className="inline-flex min-h-10 items-center rounded-md px-1 font-bold underline lg:min-h-0 lg:px-0">
+              <Link to="/shop" className="inline-flex min-h-10 items-center rounded-md px-1 font-bold underline xl:min-h-0 xl:px-0">
                 {t('slots.goToShop')}
               </Link>
             </p>

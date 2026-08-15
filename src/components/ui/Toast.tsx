@@ -96,9 +96,9 @@ function ToastCard({ toast, onDismiss, onPause, onResume }: ToastCardProps): JSX
         onClick={(): void => onDismiss(toast.id)}
         className={cn(
           // The dismiss is the only control on a toast and it is aimed at with a thumb — a 24px
-          // icon-and-padding box was the smallest target in the app. 40px below lg, unchanged above.
+          // icon-and-padding box was the smallest target in the app. 40px below xl, unchanged above.
           'grid size-10 shrink-0 cursor-pointer place-items-center rounded-md text-muted-foreground transition-colors',
-          'hover:bg-muted hover:text-foreground lg:size-7',
+          'hover:bg-muted hover:text-foreground xl:size-7',
           'outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
         )}
       >

@@ -109,7 +109,7 @@ export function RegisterPage(): JSX.Element {
             {t('auth.haveAccount')}
             <Link
               to="/login"
-              className="inline-flex min-h-11 items-center rounded-md px-2 font-bold text-primary hover:underline lg:min-h-0 lg:px-0"
+              className="inline-flex min-h-11 items-center rounded-md px-2 font-bold text-primary hover:underline xl:min-h-0 xl:px-0"
             >
               {t('auth.loginCta')}
             </Link>
