@@ -13,6 +13,11 @@
     "error": {
       "generic": "Something went wrong. Please try again.",
       "network": "Unable to reach the server. Check your connection and try again."
+    },
+    "notFound": {
+      "title": "Page not found",
+      "description": "The page you're looking for doesn't exist or has moved.",
+      "cta": "Back to Browse"
     }
   },
   "nav": {
@@ -54,6 +59,7 @@
     "loggedInAs": "Logged in as {{email}}",
     "localValidation": {
       "emailRequired": "Enter your email address.",
+      "emailInvalid": "Enter a valid email address.",
       "passwordMin": "Password must be at least {{count}} characters."
     }
   },
@@ -105,37 +111,5 @@
     "special-attack": "Special Attack",
     "special-defense": "Special Defense",
     "speed": "Speed"
-  },
-  "showcase": {
-    "title": "Theme showcase",
-    "subtitle": "Every surface below is token-driven — switch themes from the header to verify all four palettes.",
-    "buttonsTitle": "Buttons",
-    "buttonsDescription": "All variants and sizes",
-    "variantDefault": "Default",
-    "variantSecondary": "Secondary",
-    "variantOutline": "Outline",
-    "variantGhost": "Ghost",
-    "variantDestructive": "Destructive",
-    "sizeSmall": "Small",
-    "sizeDefault": "Default",
-    "sizeLarge": "Large",
-    "iconButtonLabel": "Icon button",
-    "openDialog": "Open dialog",
-    "dialogTitle": "Token-driven dialog",
-    "dialogDescription": "Cards, overlays and focus rings all follow the active theme.",
-    "badgesTitle": "Badges and form controls",
-    "badgesDescription": "Badge variants, input and label",
-    "searchLabel": "Search",
-    "searchPlaceholder": "Search for a pokemon...",
-    "loadingTitle": "Loading state",
-    "loadingDescription": "Skeleton placeholders",
-    "paletteTitle": "Palette tokens",
-    "paletteDescription": "Raw swatches of the active theme",
-    "swatchPrimary": "Primary",
-    "swatchSecondary": "Secondary",
-    "swatchAccent": "Accent",
-    "swatchMuted": "Muted",
-    "swatchDestructive": "Destructive",
-    "swatchBorder": "Border"
   }
 }

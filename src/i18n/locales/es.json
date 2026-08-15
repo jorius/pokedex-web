@@ -13,6 +13,11 @@
     "error": {
       "generic": "Ocurrió un error. Por favor, inténtalo de nuevo.",
       "network": "No se pudo conectar con el servidor. Revisa tu conexión e inténtalo de nuevo."
+    },
+    "notFound": {
+      "title": "Página no encontrada",
+      "description": "La página que buscas no existe o fue movida.",
+      "cta": "Volver a Explorar"
     }
   },
   "nav": {
@@ -54,6 +59,7 @@
     "loggedInAs": "Sesión iniciada como {{email}}",
     "localValidation": {
       "emailRequired": "Ingresa tu correo electrónico.",
+      "emailInvalid": "Ingresa un correo electrónico válido.",
       "passwordMin": "La contraseña debe tener al menos {{count}} caracteres."
     }
   },
@@ -105,37 +111,5 @@
     "special-attack": "Ataque Especial",
     "special-defense": "Defensa Especial",
     "speed": "Velocidad"
-  },
-  "showcase": {
-    "title": "Muestra de temas",
-    "subtitle": "Cada superficie de abajo depende de los tokens de diseño — cambia el tema desde el encabezado para verificar las cuatro paletas.",
-    "buttonsTitle": "Botones",
-    "buttonsDescription": "Todas las variantes y tamaños",
-    "variantDefault": "Predeterminado",
-    "variantSecondary": "Secundario",
-    "variantOutline": "Contorno",
-    "variantGhost": "Fantasma",
-    "variantDestructive": "Destructivo",
-    "sizeSmall": "Pequeño",
-    "sizeDefault": "Predeterminado",
-    "sizeLarge": "Grande",
-    "iconButtonLabel": "Botón de ícono",
-    "openDialog": "Abrir diálogo",
-    "dialogTitle": "Diálogo basado en tokens",
-    "dialogDescription": "Las tarjetas, superposiciones y anillos de foco siguen el tema activo.",
-    "badgesTitle": "Insignias y controles de formulario",
-    "badgesDescription": "Variantes de insignia, campo de texto y etiqueta",
-    "searchLabel": "Buscar",
-    "searchPlaceholder": "Busca un pokemon...",
-    "loadingTitle": "Estado de carga",
-    "loadingDescription": "Marcadores de posición tipo esqueleto",
-    "paletteTitle": "Tokens de paleta",
-    "paletteDescription": "Muestras en bruto del tema activo",
-    "swatchPrimary": "Primario",
-    "swatchSecondary": "Secundario",
-    "swatchAccent": "Acento",
-    "swatchMuted": "Atenuado",
-    "swatchDestructive": "Destructivo",
-    "swatchBorder": "Borde"
   }
 }
