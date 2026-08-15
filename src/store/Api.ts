@@ -218,8 +218,14 @@ export const api = createApi({
         try {
           const { data } = await queryFulfilled
           dispatch(sessionEstablished(data))
-        } catch {
-          // Failure is surfaced via the mutation result — nothing to establish.
+        } catch (rejection) {
+          // A definitive rejection (400/401) means the stored refresh token is dead — purge it
+          // so later boots don't repeat a doomed refresh round-trip. Transient failures
+          // (network, 5xx) keep the token so a healthy backend can still restore the session.
+          const status = (rejection as { error?: { status?: number | string } }).error?.status
+          if (status === 400 || status === 401) {
+            dispatch(sessionCleared())
+          }
         }
       },
     }),
