@@ -1,0 +1,128 @@
+/*
+ * The four Pokemon-game themes (plan: "Theme design (binding)").
+ * Each theme is a full CSS custom-property set on :root[data-theme="..."]; components consume
+ * them exclusively through the Tailwind tokens mapped in src/index.css — never raw colors.
+ *
+ * Contrast adjustments vs the plan's spec hexes (WCAG AA, documented in the task report):
+ * - emerald: primary #0FA36B kept, but primary-foreground is deep rainforest #07231A (5.12:1)
+ *   because white on #0FA36B is only 3.24:1.
+ * - firered: primary darkened one step #E3350D -> #DB330D so white text reaches 4.68:1
+ *   (spec hex was 4.39:1); the iconic #E3350D lives on as the focus ring.
+ * - bw-light: accent #3B82F6 kept, accent-foreground is near-black #0B1220 (5.09:1)
+ *   because white on #3B82F6 is only 3.68:1.
+ */
+
+/* Default theme (emerald) — safety net for when the no-flash script has not set data-theme */
+:root {
+  --background: #f4f1e0;
+  --foreground: #17241f;
+  --card: #fffdf2;
+  --card-foreground: #17241f;
+  --primary: #0fa36b;
+  --primary-foreground: #07231a;
+  --secondary: #1e5b4a;
+  --secondary-foreground: #f4f1e0;
+  --accent: #d9a441;
+  --accent-foreground: #17241f;
+  --muted: #e9e4cc;
+  --muted-foreground: #4e5d54;
+  --border: #c9c3a6;
+  --input: #c9c3a6;
+  --ring: #0fa36b;
+  --destructive: #b3402a;
+  --destructive-foreground: #ffffff;
+  --radius: 0.5rem;
+  color-scheme: light;
+}
+
+/* Pokemon Emerald (the default) — GBA menu warmth: cream panels framed in green with gold highlights */
+:root[data-theme='emerald'] {
+  --background: #f4f1e0;
+  --foreground: #17241f;
+  --card: #fffdf2;
+  --card-foreground: #17241f;
+  --primary: #0fa36b;
+  --primary-foreground: #07231a;
+  --secondary: #1e5b4a;
+  --secondary-foreground: #f4f1e0;
+  --accent: #d9a441;
+  --accent-foreground: #17241f;
+  --muted: #e9e4cc;
+  --muted-foreground: #4e5d54;
+  --border: #c9c3a6;
+  --input: #c9c3a6;
+  --ring: #0fa36b;
+  --destructive: #b3402a;
+  --destructive-foreground: #ffffff;
+  --radius: 0.5rem;
+  color-scheme: light;
+}
+
+/* Pokemon FireRed — warm, energetic, red-dominant */
+:root[data-theme='firered'] {
+  --background: #fff6ec;
+  --foreground: #2b211c;
+  --card: #ffffff;
+  --card-foreground: #2b211c;
+  --primary: #db330d;
+  --primary-foreground: #ffffff;
+  --secondary: #f57c00;
+  --secondary-foreground: #2b211c;
+  --accent: #ffc107;
+  --accent-foreground: #2b211c;
+  --muted: #f9e8d8;
+  --muted-foreground: #6e5b4e;
+  --border: #e8d5c4;
+  --input: #e8d5c4;
+  --ring: #e3350d;
+  --destructive: #b91c1c;
+  --destructive-foreground: #ffffff;
+  --radius: 0.75rem;
+  color-scheme: light;
+}
+
+/* Pokemon Black & White (light half) — clinical, minimal, high-contrast; Reshiram blue used sparingly */
+:root[data-theme='bw-light'] {
+  --background: #ffffff;
+  --foreground: #111111;
+  --card: #f5f5f5;
+  --card-foreground: #111111;
+  --primary: #111111;
+  --primary-foreground: #ffffff;
+  --secondary: #e5e5e5;
+  --secondary-foreground: #111111;
+  --accent: #3b82f6;
+  --accent-foreground: #0b1220;
+  --muted: #f5f5f5;
+  --muted-foreground: #595959;
+  --border: #e0e0e0;
+  --input: #e0e0e0;
+  --ring: #3b82f6;
+  --destructive: #b91c1c;
+  --destructive-foreground: #ffffff;
+  --radius: 0.25rem;
+  color-scheme: light;
+}
+
+/* Pokemon Black & White (black half) — OLED-dark mirror of bw-light; Zekrom electric cyan accent */
+:root[data-theme='bw-dark'] {
+  --background: #0c0c0e;
+  --foreground: #f2f2f2;
+  --card: #18181b;
+  --card-foreground: #f2f2f2;
+  --primary: #f2f2f2;
+  --primary-foreground: #0c0c0e;
+  --secondary: #26262b;
+  --secondary-foreground: #f2f2f2;
+  --accent: #22d3ee;
+  --accent-foreground: #0c0c0e;
+  --muted: #1f1f23;
+  --muted-foreground: #a1a1aa;
+  --border: #2a2a2e;
+  --input: #2a2a2e;
+  --ring: #22d3ee;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --radius: 0.25rem;
+  color-scheme: dark;
+}

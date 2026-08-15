@@ -5,6 +5,21 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pokedex</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet" />
+    <script>
+      // Apply the persisted theme before first paint so there is no flash of the default theme
+      (function () {
+        var themes = ['emerald', 'firered', 'bw-light', 'bw-dark']
+        var theme = 'emerald'
+        try {
+          var stored = localStorage.getItem('pokedex.theme')
+          if (themes.indexOf(stored) >= 0) theme = stored
+        } catch (e) { /* storage unavailable — keep default */ }
+        document.documentElement.dataset.theme = theme
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
