@@ -26,7 +26,7 @@ export const API_TARGETS: readonly ApiTargetMeta[] = [
 
 const DEFAULT_TARGET: ApiTarget = 'dotnet'
 
-function isApiTarget(value: unknown): value is ApiTarget {
+export function isApiTarget(value: unknown): value is ApiTarget {
   return typeof value === 'string' && (API_TARGET_VALUES as readonly string[]).includes(value)
 }
 

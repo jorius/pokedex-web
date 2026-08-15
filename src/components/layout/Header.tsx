@@ -20,6 +20,7 @@ import { getRefreshToken } from '../../store/RefreshTokenStorage'
 import { THEMES, isTheme } from '../../themes/ThemeContext'
 
 // Components
+import { BackendSwitcher } from './BackendSwitcher'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { Button } from '../ui/Button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/Select'
@@ -82,6 +83,7 @@ export function Header(): JSX.Element {
           </nav>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <BackendSwitcher />
           <LanguageSwitcher />
           <Select value={theme} onValueChange={(value): void => { if (isTheme(value)) setTheme(value) }}>
             <SelectTrigger aria-label={t('theme.label')} className="w-36">

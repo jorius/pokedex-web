@@ -44,6 +44,7 @@
     "dotnet": ".NET",
     "expressJs": "Express (JS)",
     "expressTs": "Express (TS)",
+    "checking": "Checking {{name}}...",
     "switched": "Switched to {{name}}.",
     "unreachable": "{{name}} is unreachable."
   },

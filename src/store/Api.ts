@@ -185,8 +185,14 @@ export const api = createApi({
       transformResponse: (response: ApiEnvelope<AuthSession>): AuthSession => response.data as AuthSession,
       transformErrorResponse: toApiError,
       onQueryStarted: async (_arg, { dispatch, queryFulfilled }): Promise<void> => {
-        const { data } = await queryFulfilled
-        dispatch(sessionEstablished(data))
+        // queryFulfilled MUST be caught here — an uncaught rejection in onQueryStarted
+        // surfaces as an unhandled promise rejection even when the caller unwraps+catches.
+        try {
+          const { data } = await queryFulfilled
+          dispatch(sessionEstablished(data))
+        } catch {
+          // Failure is surfaced via the mutation result — nothing to establish.
+        }
       },
     }),
 
@@ -195,8 +201,12 @@ export const api = createApi({
       transformResponse: (response: ApiEnvelope<AuthSession>): AuthSession => response.data as AuthSession,
       transformErrorResponse: toApiError,
       onQueryStarted: async (_arg, { dispatch, queryFulfilled }): Promise<void> => {
-        const { data } = await queryFulfilled
-        dispatch(sessionEstablished(data))
+        try {
+          const { data } = await queryFulfilled
+          dispatch(sessionEstablished(data))
+        } catch {
+          // Failure is surfaced via the mutation result — nothing to establish.
+        }
       },
     }),
 
@@ -205,8 +215,12 @@ export const api = createApi({
       transformResponse: (response: ApiEnvelope<AuthSession>): AuthSession => response.data as AuthSession,
       transformErrorResponse: toApiError,
       onQueryStarted: async (_arg, { dispatch, queryFulfilled }): Promise<void> => {
-        const { data } = await queryFulfilled
-        dispatch(sessionEstablished(data))
+        try {
+          const { data } = await queryFulfilled
+          dispatch(sessionEstablished(data))
+        } catch {
+          // Failure is surfaced via the mutation result — nothing to establish.
+        }
       },
     }),
 
@@ -219,6 +233,8 @@ export const api = createApi({
       onQueryStarted: async (_arg, { dispatch, queryFulfilled }): Promise<void> => {
         try {
           await queryFulfilled
+        } catch {
+          // Server rejection changes nothing — the local session is cleared regardless.
         } finally {
           dispatch(sessionCleared())
         }

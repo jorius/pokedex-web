@@ -10,6 +10,13 @@
  *   (spec hex was 4.39:1); the iconic #E3350D lives on as the focus ring.
  * - bw-light: accent #3B82F6 kept, accent-foreground is near-black #0B1220 (5.09:1)
  *   because white on #3B82F6 is only 3.68:1.
+ * - bw-dark: destructive lightened #DC2626 -> #F87171 so destructiveGhost text reaches
+ *   7.06:1 on background and 6.40:1 on card (the old red was 3.67:1 on card); with the
+ *   lighter red, white button text would fail (2.77:1), so destructive-foreground is
+ *   near-black #0C0C0E (7.06:1 on #F87171).
+ *
+ * --overlay is the dialog scrim: a foreground-tinted near-black at 60% for light themes,
+ * deeper on bw-dark so the scrim still reads against OLED-black surfaces.
  */
 
 /* Default theme (emerald) — safety net for when the no-flash script has not set data-theme */
@@ -31,6 +38,7 @@
   --ring: #0fa36b;
   --destructive: #b3402a;
   --destructive-foreground: #ffffff;
+  --overlay: rgb(23 36 31 / 0.6);
   --radius: 0.5rem;
   color-scheme: light;
 }
@@ -54,6 +62,7 @@
   --ring: #0fa36b;
   --destructive: #b3402a;
   --destructive-foreground: #ffffff;
+  --overlay: rgb(23 36 31 / 0.6);
   --radius: 0.5rem;
   color-scheme: light;
 }
@@ -77,6 +86,7 @@
   --ring: #e3350d;
   --destructive: #b91c1c;
   --destructive-foreground: #ffffff;
+  --overlay: rgb(43 33 28 / 0.6);
   --radius: 0.75rem;
   color-scheme: light;
 }
@@ -100,6 +110,7 @@
   --ring: #3b82f6;
   --destructive: #b91c1c;
   --destructive-foreground: #ffffff;
+  --overlay: rgb(17 17 17 / 0.6);
   --radius: 0.25rem;
   color-scheme: light;
 }
@@ -121,8 +132,9 @@
   --border: #2a2a2e;
   --input: #2a2a2e;
   --ring: #22d3ee;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
+  --destructive: #f87171;
+  --destructive-foreground: #0c0c0e;
+  --overlay: rgb(0 0 0 / 0.72);
   --radius: 0.25rem;
   color-scheme: dark;
 }

@@ -2,6 +2,7 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import type { ComponentProps, ComponentPropsWithRef, JSX } from 'react'
+import { useTranslation } from 'react-i18next'
 
 // Lib
 import { cn } from '../../lib/Cn'
@@ -25,13 +26,16 @@ export function DialogClose(props: ComponentPropsWithRef<typeof DialogPrimitive.
 export function DialogOverlay({ className, ...props }: ComponentPropsWithRef<typeof DialogPrimitive.Overlay>): JSX.Element {
   return (
     <DialogPrimitive.Overlay
-      className={cn('fixed inset-0 z-50 bg-black/60', className)}
+      className={cn('fixed inset-0 z-50 bg-overlay', className)}
       {...props}
     />
   )
 }
 
 export function DialogContent({ className, children, ...props }: ComponentPropsWithRef<typeof DialogPrimitive.Content>): JSX.Element {
+  // ui primitives normally stay i18n-free, but the close button's accessible name lives
+  // here and must be translated — a hard-coded English string would leak into every dialog.
+  const { t } = useTranslation()
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -50,7 +54,7 @@ export function DialogContent({ className, children, ...props }: ComponentPropsW
           )}
         >
           <X className="size-4" />
-          <span className="sr-only">Close</span>
+          <span className="sr-only">{t('common.close')}</span>
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
     </DialogPortal>

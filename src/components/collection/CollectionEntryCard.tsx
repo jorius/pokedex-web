@@ -26,6 +26,9 @@ interface CollectionEntryCardProps {
 export function CollectionEntryCard({ record, onEdit, onDelete }: CollectionEntryCardProps): JSX.Element {
   const { t } = useTranslation()
   const displayName = humanizeSlug(record.name)
+  // The delete button's accessible name must match what DeleteConfirmDialog's body will
+  // say — nickname when one exists, species name otherwise.
+  const deleteName = record.localizedName ?? displayName
 
   return (
     <Card className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
@@ -63,7 +66,7 @@ export function CollectionEntryCard({ record, onEdit, onDelete }: CollectionEntr
         <Button
           variant="destructiveGhost"
           size="sm"
-          aria-label={t('collection.deleteAria', { name: displayName })}
+          aria-label={t('collection.deleteAria', { name: deleteName })}
           onClick={onDelete}
         >
           <Trash2 aria-hidden />

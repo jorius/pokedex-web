@@ -13,6 +13,13 @@ export const SUPPORTED_LANGUAGES = ['en', 'es'] as const
 
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]
 
+// Keep <html lang> in sync with the active language so assistive tech and the browser
+// (spellcheck, translation prompts, hyphenation) see the correct document language.
+// Registered before init so the event fired during init also lands here.
+i18n.on('languageChanged', (lng) => {
+  document.documentElement.lang = lng
+})
+
 // i18next persists the resolved language itself (localStorage key above) — Task 4's
 // uiSlice must NOT duplicate this in Redux to avoid a second source of truth.
 void i18n
@@ -33,6 +40,10 @@ void i18n
     interpolation: {
       escapeValue: false,
     },
+  })
+  .then(() => {
+    // Belt-and-braces initial sync in case the languageChanged event preceded listener setup.
+    document.documentElement.lang = i18n.language
   })
 
 export default i18n
