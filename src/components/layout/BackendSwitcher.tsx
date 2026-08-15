@@ -12,6 +12,9 @@ import { API_TARGETS, isApiTarget, setApiTarget } from '../../store/ApiTargetSli
 import { useAppDispatch, useAppSelector } from '../../store/Hooks'
 import type { ApiTarget } from '../../store/Types'
 
+// Lib
+import { cn } from '../../lib/Cn'
+
 // Components
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/Select'
 
@@ -29,7 +32,12 @@ const HEALTH_PROBE_TIMEOUT_MS = 3000
  * render. Only the in-flight state stays local, as a spinner in place of the trigger's icon —
  * a toast that says "checking..." and is immediately replaced by its own outcome is noise.
  */
-export function BackendSwitcher(): JSX.Element {
+interface BackendSwitcherProps {
+  /** Trigger width. The desktop bar pins it (see SwitcherStyles); the drawer passes `w-full`. */
+  className?: string
+}
+
+export function BackendSwitcher({ className }: BackendSwitcherProps): JSX.Element {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const { showToast } = useToast()
@@ -84,7 +92,7 @@ export function BackendSwitcher(): JSX.Element {
   return (
     <div>
       <Select value={target} onValueChange={handleTargetChange}>
-        <SelectTrigger aria-label={t('backend.label')} title={t(`backend.${target}`)} className="w-40">
+        <SelectTrigger aria-label={t('backend.label')} title={t(`backend.${target}`)} className={cn('w-full', className)}>
           <span className="flex min-w-0 items-center gap-2">
             {checkingTarget !== null ? (
               <Loader2 aria-hidden className="size-4 shrink-0 animate-spin text-muted-foreground motion-reduce:animate-none" />

@@ -20,7 +20,16 @@ export function SelectValue({ className, ...props }: ComponentPropsWithRef<typeo
   return <SelectPrimitive.Value className={cn('min-w-0 truncate', className)} {...props} />
 }
 
-export function SelectTrigger({ className, children, ...props }: ComponentPropsWithRef<typeof SelectPrimitive.Trigger>): JSX.Element {
+interface SelectTriggerProps extends ComponentPropsWithRef<typeof SelectPrimitive.Trigger> {
+  /**
+   * Set false for an icon-only trigger, where the caret would crowd out the icon it sits beside.
+   * The trigger still announces itself as a combobox, so the affordance is not carried by the
+   * caret alone — only its picture is dropped.
+   */
+  showChevron?: boolean
+}
+
+export function SelectTrigger({ className, children, showChevron = true, ...props }: SelectTriggerProps): JSX.Element {
   // Deliberately NO `[&>span]:line-clamp-1` here: line-clamp forces `display: -webkit-box`
   // onto every direct span child with higher specificity than `.flex`, which silently broke the
   // switchers' icon+label rows (icon stacked above the text). Overflow is handled by
@@ -36,9 +45,11 @@ export function SelectTrigger({ className, children, ...props }: ComponentPropsW
       {...props}
     >
       {children}
-      <SelectPrimitive.Icon asChild>
-        <ChevronDown className="size-4 shrink-0 opacity-60" />
-      </SelectPrimitive.Icon>
+      {showChevron && (
+        <SelectPrimitive.Icon asChild>
+          <ChevronDown className="size-4 shrink-0 opacity-60" />
+        </SelectPrimitive.Icon>
+      )}
     </SelectPrimitive.Trigger>
   )
 }

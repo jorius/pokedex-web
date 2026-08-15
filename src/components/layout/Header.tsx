@@ -2,7 +2,7 @@
 import { Loader2, LogOut } from 'lucide-react'
 import type { JSX } from 'react'
 import { useTranslation } from 'react-i18next'
-import { NavLink, useNavigate } from 'react-router'
+import { Link, NavLink, useNavigate } from 'react-router'
 
 // Hooks
 import { useTheme } from '../../hooks/UseTheme'
@@ -16,34 +16,17 @@ import { sessionCleared } from '../../store/AuthSlice'
 import { useAppDispatch, useAppSelector } from '../../store/Hooks'
 import { getRefreshToken } from '../../store/RefreshTokenStorage'
 
-// Themes
-import { THEMES, isTheme } from '../../themes/ThemeContext'
-import type { Theme } from '../../themes/ThemeContext'
-
 // Components
 import { PokeballMark } from '../brand/PokeballMark'
 import { THEME_POKEBALL } from '../brand/PokeballPalettes'
 import { WalletChip } from '../economy/WalletChip'
 import { BackendSwitcher } from './BackendSwitcher'
+import { HeaderMenu } from './HeaderMenu'
 import { LanguageSwitcher } from './LanguageSwitcher'
+import { NAV_ITEMS } from './NavItems'
+import { BACKEND_TRIGGER_CLASS } from './SwitcherStyles'
+import { ThemeSwitcher } from './ThemeSwitcher'
 import { Button } from '../ui/Button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/Select'
-
-// Theme keys map 1:1 to i18n `theme.*` keys, kept in a lookup so a raw `theme` value
-// (e.g. 'bw-light') resolves to its camelCase key (e.g. 'bwLight') without a switch.
-// `satisfies` (not an annotation) keeps the literal value types t() needs while still failing the
-// build if a theme is added to THEMES without a label here.
-const THEME_I18N_KEYS = {
-  emerald: 'emerald',
-  ruby: 'ruby',
-  sapphire: 'sapphire',
-  firered: 'firered',
-  leafgreen: 'leafgreen',
-  diamond: 'diamond',
-  pearl: 'pearl',
-  'bw-light': 'bwLight',
-  'bw-dark': 'bwDark',
-} as const satisfies Record<Theme, string>
 
 const NAV_LINK_CLASS = 'text-sm font-bold text-muted-foreground transition-colors hover:text-foreground'
 const NAV_LINK_ACTIVE_CLASS = 'text-primary hover:text-primary'
@@ -52,9 +35,32 @@ function navLinkClassName({ isActive }: { isActive: boolean }): string {
   return cn(NAV_LINK_CLASS, isActive && NAV_LINK_ACTIVE_CLASS)
 }
 
+/**
+ * ONE ROW, EVERY WIDTH.
+ *
+ * This header used to be a `flex-wrap` row that grew a line whenever its contents stopped fitting.
+ * They stopped fitting at 1440: brand+nav and the authenticated control cluster wanted ~1294px
+ * (~1388 in Spanish) of a 1152px container, so the desktop header was permanently two rows deep,
+ * and at 412px it was four (five in Spanish) — roughly 350-400px of a 915px phone screen spent
+ * before any content. Wrapping is now off entirely; the row fits by construction on both sides of
+ * one breakpoint:
+ *
+ *   >= xl (1280)  the full bar. The budget is met by taking the two switchers whose value the page
+ *                 already states — language (the UI is IN it) and theme (the trigger IS its ball) —
+ *                 down to icon triggers, and by showing the account as the bare address rather than
+ *                 the "Logged in as {email}" sentence, with the sentence kept on `title`. Backend
+ *                 keeps its label: live backend switching is the app's headline feature. Measured
+ *                 at 1440: 1022px English / 1115px Spanish against 1152 available.
+ *   <  xl         brand + wallet chip + a menu button opening HeaderMenu, which stacks the nav, all
+ *                 three switchers and the account actions at full width. See that file.
+ *
+ * The wallet chip stays on the bar at every width rather than moving into the drawer: it is the one
+ * control here that is READ rather than operated, it changes constantly (catch, shop, slots), and
+ * the whole economy is meaningless if the balance costs a tap to see.
+ */
 export function Header(): JSX.Element {
   const { t } = useTranslation()
-  const { theme, setTheme } = useTheme()
+  const { theme } = useTheme()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const user = useAppSelector((state) => state.auth.user)
@@ -72,87 +78,72 @@ export function Header(): JSX.Element {
     navigate('/')
   }
 
+  function handleLogoutClick(): void {
+    void handleLogout()
+  }
+
+  const navItems = NAV_ITEMS.filter((item) => !item.isAuthOnly || user !== null)
+
   return (
     <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
       {/* The stripe carries the theme's SIGNATURE colour, so it must be --primary: on --accent it
           rendered emerald's gold over a green page, and the toggle right beneath it (bg-primary)
           disagreed with it in every theme. --accent is now reserved for the small ticks. */}
       <div aria-hidden className="h-1 bg-primary" />
-      {/* min-h + py instead of a fixed h-14: when longer locale strings (ES) force the controls
-          onto a second line the header must grow — a fixed height made the rows collide. */}
-      <div className="mx-auto flex min-h-14 w-full max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-1">
-          <span className="flex shrink-0 items-center gap-2.5">
-            <PokeballMark variant={THEME_POKEBALL[theme]} size={22} />
-            <span className="font-display text-xl font-bold tracking-wide text-foreground">{t('common.appName')}</span>
-          </span>
-          <nav className="flex items-center gap-4">
-            <NavLink to="/" end className={navLinkClassName}>
-              {t('nav.browse')}
-            </NavLink>
-            <NavLink to="/collection" className={navLinkClassName}>
-              {t('nav.collection')}
-            </NavLink>
-            {/* Economy links are authenticated-only: both routes sit behind RequireAuth, so showing
-                them to a visitor would advertise a page that can only bounce them to /login. */}
-            {user && (
-              <>
-                <NavLink to="/shop" className={navLinkClassName}>
-                  {t('nav.shop')}
-                </NavLink>
-                <NavLink to="/slots" className={navLinkClassName}>
-                  {t('nav.slots')}
-                </NavLink>
-              </>
-            )}
-          </nav>
-        </div>
-        {/* ml-auto (not parent justify-between) keeps the controls right-aligned even when flex-wrap
-            drops them onto their own line. */}
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-          {/* Leads the controls cluster: it is account state like the email and the logout button
-              beside it, and it wraps with them rather than pushing the nav around. Mounted only
-              when signed in — /api/economy/wallet is a 401 for everyone else. */}
-          {user && <WalletChip />}
-          <BackendSwitcher />
-          <LanguageSwitcher />
-          <Select value={theme} onValueChange={(value): void => { if (isTheme(value)) setTheme(value) }}>
-            {/* No leading icon of our own here (the generic palette glyph used to sit where the
-                ball is now): Radix portals the SELECTED item's <ItemText> children into the
-                trigger, so putting the ball inside each option renders it in the trigger too —
-                one source, and the trigger can never disagree with the list. The ball is
-                decorative (aria-hidden inside PokeballMark) and contributes no textContent, so
-                the hidden native <option> and typeahead still see just the label; `textValue`
-                states that explicitly rather than relying on the DOM fallback. */}
-            <SelectTrigger aria-label={t('theme.label')} title={t(`theme.${THEME_I18N_KEYS[theme]}`)} className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent align="end">
-              {THEMES.map((value) => (
-                <SelectItem key={value} value={value} textValue={t(`theme.${THEME_I18N_KEYS[value]}`)}>
-                  <span className="flex min-w-0 items-center gap-2">
-                    <PokeballMark variant={THEME_POKEBALL[value]} size={17} />
-                    <span className="truncate">{t(`theme.${THEME_I18N_KEYS[value]}`)}</span>
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {user ? (
-            <div className="flex items-center gap-2">
-              <span title={t('auth.loggedInAs', { email: user.email })} className="hidden max-w-48 truncate text-sm text-muted-foreground sm:inline-block">
-                {t('auth.loggedInAs', { email: user.email })}
-              </span>
-              <Button variant="ghost" size="sm" disabled={isLoggingOut} onClick={(): void => { void handleLogout() }}>
-                {isLoggingOut ? <Loader2 className="animate-spin" aria-hidden /> : <LogOut aria-hidden />}
-                {t('nav.logout')}
-              </Button>
-            </div>
-          ) : (
-            <Button asChild variant="outline" size="sm">
-              <NavLink to="/login">{t('nav.login')}</NavLink>
-            </Button>
+      {/* No flex-wrap and no min-h growth: the row is sized to fit at every width above, so a
+          second line can only ever mean something has overflowed. */}
+      <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-2 px-4 sm:gap-5">
+        {/* The mark is the way home on a phone, where the nav links live behind the menu button. */}
+        <Link
+          to="/"
+          aria-label={t('nav.browse')}
+          className={cn(
+            'flex shrink-0 items-center gap-2.5 rounded-md outline-none',
+            'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
           )}
+        >
+          <PokeballMark variant={THEME_POKEBALL[theme]} size={22} />
+          <span className="font-display text-lg font-bold tracking-wide text-foreground sm:text-xl">{t('common.appName')}</span>
+        </Link>
+
+        <nav className="hidden items-center gap-3 xl:flex">
+          {navItems.map((item) => (
+            <NavLink key={item.to} to={item.to} end={item.isExact} className={navLinkClassName}>
+              {t(item.labelKey)}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* ml-auto right-aligns the controls without a parent justify-between, which would have
+            stranded the nav in the middle of the row once it is hidden below xl. */}
+        <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+          {/* Mounted only when signed in — /api/economy/wallet is a 401 for everyone else. */}
+          {user && <WalletChip />}
+
+          <div className="hidden items-center gap-2 xl:flex">
+            <BackendSwitcher className={BACKEND_TRIGGER_CLASS} />
+            <LanguageSwitcher compact />
+            <ThemeSwitcher compact />
+            {user ? (
+              <div className="flex items-center gap-2">
+                {/* The address alone, not the whole sentence: "Logged in as " cost ~90px of a row
+                    that had none to give, and says nothing the position in the header does not. */}
+                <span title={t('auth.loggedInAs', { email: user.email })} className="max-w-28 truncate text-sm text-muted-foreground">
+                  {user.email}
+                </span>
+                <Button variant="ghost" size="sm" disabled={isLoggingOut} onClick={handleLogoutClick}>
+                  {isLoggingOut ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden /> : <LogOut aria-hidden />}
+                  {t('nav.logout')}
+                </Button>
+              </div>
+            ) : (
+              <Button asChild variant="outline" size="sm">
+                <NavLink to="/login">{t('nav.login')}</NavLink>
+              </Button>
+            )}
+          </div>
+
+          <HeaderMenu user={user} isLoggingOut={isLoggingOut} onLogout={handleLogoutClick} className="xl:hidden" />
         </div>
       </div>
     </header>

@@ -31,7 +31,11 @@
     "slots": "Tragaperras",
     "login": "Iniciar sesión",
     "register": "Registrarse",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "menu": "Menú",
+    "navigation": "Navegación",
+    "settings": "Ajustes",
+    "account": "Cuenta"
   },
   "theme": {
     "label": "Tema",

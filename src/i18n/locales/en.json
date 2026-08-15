@@ -31,7 +31,11 @@
     "slots": "Slots",
     "login": "Log in",
     "register": "Register",
-    "logout": "Log out"
+    "logout": "Log out",
+    "menu": "Menu",
+    "navigation": "Navigation",
+    "settings": "Settings",
+    "account": "Account"
   },
   "theme": {
     "label": "Theme",
