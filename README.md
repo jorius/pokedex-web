@@ -8,9 +8,9 @@ Four repositories make up the ecosystem. The three backends are **contract-ident
 
 | Repo | Stack | Port | Role |
 |---|---|---|---|
-| [`pokedex-api-express-ts`](../pokedex-api-express-ts) | Node 22, Express 5, TypeScript, Drizzle | 3001 | Backend — reference implementation; **schema + infra owner** |
-| [`pokedex-api-express-js`](../pokedex-api-express-js) | Node 22, Express 5, JavaScript (ESM) | 3000 | Backend — plain-JS mirror |
-| [`pokedex-api-dotnet`](../pokedex-api-dotnet) | ASP.NET Core (.NET 10), EF Core, Npgsql | 5257 | Backend — database-first EF mapping |
+| [`pokedex-api-express-ts`](https://github.com/jorius/pokedex-api-express-ts) | Node 22, Express 5, TypeScript, Drizzle | 3001 | Backend — reference implementation; **schema + infra owner** |
+| [`pokedex-api-express-js`](https://github.com/jorius/pokedex-api-express-js) | Node 22, Express 5, JavaScript (ESM) | 3000 | Backend — plain-JS mirror |
+| [`pokedex-api-dotnet`](https://github.com/jorius/pokedex-api-dotnet) | ASP.NET Core (.NET 10), EF Core, Npgsql | 5257 | Backend — database-first EF mapping |
 | [`pokedex-web`](.) | React 19, Vite, TypeScript | 5173 | Frontend — **this repo** |
 
 ```mermaid
@@ -400,8 +400,8 @@ The standing manual gate is a **full walk over the LAN on a real phone viewport*
 
 ## Ecosystem siblings
 
-- [`../pokedex-api-express-ts`](../pokedex-api-express-ts) — TypeScript reference backend, schema + infra owner (port 3001)
-- [`../pokedex-api-express-js`](../pokedex-api-express-js) — plain-JS mirror backend (port 3000)
-- [`../pokedex-api-dotnet`](../pokedex-api-dotnet) — ASP.NET Core backend (port 5257)
+- [`pokedex-api-express-ts`](https://github.com/jorius/pokedex-api-express-ts) — TypeScript reference backend, schema + infra owner (port 3001)
+- [`pokedex-api-express-js`](https://github.com/jorius/pokedex-api-express-js) — plain-JS mirror backend (port 3000)
+- [`pokedex-api-dotnet`](https://github.com/jorius/pokedex-api-dotnet) — ASP.NET Core backend (port 5257)
 
-Design charter: [`../pokedex-api-express-ts/docs/superpowers/specs/2026-08-14-pokedex-ecosystem-design.md`](../pokedex-api-express-ts/docs/superpowers/specs/2026-08-14-pokedex-ecosystem-design.md).
+Design charter: [`../pokedex-api-express-ts/docs/superpowers/specs/2026-08-14-pokedex-ecosystem-design.md`](https://github.com/jorius/pokedex-api-express-ts/blob/main/docs/superpowers/specs/2026-08-14-pokedex-ecosystem-design.md).
